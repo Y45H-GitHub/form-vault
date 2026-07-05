@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import { initDatabase } from './database';
 import { createTray } from './tray';
 import { registerGlobalHotkey, unregisterAllHotkeys } from './hotkey';
@@ -43,11 +43,5 @@ if (!gotLock) {
   app.on('before-quit', () => {
     unregisterAllHotkeys();
     stopTextExpander();
-  });
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createTray();
-    }
   });
 }
