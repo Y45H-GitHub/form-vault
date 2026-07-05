@@ -4,7 +4,8 @@ import path from 'path';
 import { IPC } from '../src/shared/constants';
 import type { NewField, NewProfile, UpdateField, VaultExport } from '../src/shared/types';
 import * as db from './database';
-import { copyAndPaste, copyToClipboard } from './clipboard';
+import { copyAndPaste, copyToClipboard, isAutoPasteAvailable } from './clipboard';
+import { isTextExpanderAvailable } from './text-expander';
 import { hidePopupWindow } from './popup-window';
 import { openVaultWindow } from './vault-window';
 import { openSettingsWindow } from './settings-window';
@@ -75,6 +76,15 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.DELETE_FILE, (_e, fileId: string) => db.deleteFile(fileId));
 
+  ipcMain.handle(IPC.PICK_FILE, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Select a file to reference',
+      properties: ['openFile']
+    });
+    if (canceled || filePaths.length === 0) return null;
+    return filePaths[0];
+  });
+
   ipcMain.handle(IPC.EXPORT_VAULT, async () => {
     const { profiles, fields } = db.exportAllProfilesAndFields();
     const payload: VaultExport = { version: 1, exportedAt: new Date().toISOString(), profiles, fields };
@@ -130,4 +140,9 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IPC.OPEN_SETTINGS, () => openSettingsWindow());
   ipcMain.handle(IPC.CLOSE_POPUP, () => hidePopupWindow());
   ipcMain.handle(IPC.QUIT, () => app.quit());
+  ipcMain.handle(IPC.GET_APP_VERSION, () => app.getVersion());
+  ipcMain.handle(IPC.GET_CAPABILITIES, () => ({
+    autoPaste: isAutoPasteAvailable(),
+    textExpansion: isTextExpanderAvailable()
+  }));
 }

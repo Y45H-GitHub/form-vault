@@ -17,6 +17,7 @@ const api = {
   addFile: (profileId: string, label: string, filePath: string): Promise<FileRef> =>
     ipcRenderer.invoke(IPC.ADD_FILE, profileId, label, filePath),
   deleteFile: (fileId: string): Promise<void> => ipcRenderer.invoke(IPC.DELETE_FILE, fileId),
+  pickFile: (): Promise<string | null> => ipcRenderer.invoke(IPC.PICK_FILE),
   exportVault: (): Promise<{ ok: boolean; path?: string }> => ipcRenderer.invoke(IPC.EXPORT_VAULT),
   importVault: (): Promise<{ ok: boolean }> => ipcRenderer.invoke(IPC.IMPORT_VAULT),
 
@@ -27,6 +28,9 @@ const api = {
   openSettings: (): Promise<void> => ipcRenderer.invoke(IPC.OPEN_SETTINGS),
   closePopup: (): Promise<void> => ipcRenderer.invoke(IPC.CLOSE_POPUP),
   quit: (): Promise<void> => ipcRenderer.invoke(IPC.QUIT),
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke(IPC.GET_APP_VERSION),
+  getCapabilities: (): Promise<{ autoPaste: boolean; textExpansion: boolean }> =>
+    ipcRenderer.invoke(IPC.GET_CAPABILITIES),
 
   onVaultDataUpdated: (callback: () => void): (() => void) => {
     const listener = () => callback();

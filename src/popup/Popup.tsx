@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Settings, X } from 'lucide-react';
 import { ipc } from '../shared/ipc-client';
+import { useTheme } from '../shared/useTheme';
 import { CategoryTabs } from './CategoryTabs';
 import { FieldList } from './FieldList';
 import { ProfileSwitcher } from './ProfileSwitcher';
@@ -8,6 +9,7 @@ import { SearchBar } from './SearchBar';
 import type { Category, Field, Profile } from '../shared/types';
 
 export function Popup() {
+  useTheme();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [fields, setFields] = useState<Field[]>([]);

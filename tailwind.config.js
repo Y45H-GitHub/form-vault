@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+const withOpacity = (varName) => ({ opacityValue }) =>
+  opacityValue === undefined ? `rgb(var(${varName}))` : `rgb(var(${varName}) / ${opacityValue})`;
+
 module.exports = {
   darkMode: 'class',
   content: ['./src/**/*.{html,ts,tsx}'],
@@ -9,22 +12,22 @@ module.exports = {
       },
       colors: {
         bg: {
-          primary: '#0f0f13',
-          secondary: '#1a1a24',
-          card: '#22223a',
-          hover: '#2d2d45'
+          primary: withOpacity('--fv-bg-primary'),
+          secondary: withOpacity('--fv-bg-secondary'),
+          card: withOpacity('--fv-bg-card'),
+          hover: withOpacity('--fv-bg-hover')
         },
         accent: {
           DEFAULT: '#6366f1',
           hover: '#4f46e5'
         },
         text: {
-          primary: '#f0f0f5',
-          secondary: '#9999bb',
-          muted: '#666680'
+          primary: withOpacity('--fv-text-primary'),
+          secondary: withOpacity('--fv-text-secondary'),
+          muted: withOpacity('--fv-text-muted')
         },
         border: {
-          DEFAULT: '#333355'
+          DEFAULT: withOpacity('--fv-border')
         },
         success: '#22c55e',
         category: {

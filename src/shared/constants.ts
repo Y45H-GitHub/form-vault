@@ -61,6 +61,7 @@ export const IPC = {
   GET_FILES: 'vault:get-files',
   ADD_FILE: 'vault:add-file',
   DELETE_FILE: 'vault:delete-file',
+  PICK_FILE: 'vault:pick-file',
   EXPORT_VAULT: 'vault:export',
   IMPORT_VAULT: 'vault:import',
 
@@ -70,5 +71,7 @@ export const IPC = {
   OPEN_VAULT_MANAGER: 'app:open-vault-manager',
   OPEN_SETTINGS: 'app:open-settings',
   CLOSE_POPUP: 'app:close-popup',
-  QUIT: 'app:quit'
+  QUIT: 'app:quit',
+  GET_APP_VERSION: 'app:get-version',
+  GET_CAPABILITIES: 'app:get-capabilities'
 } as const;
