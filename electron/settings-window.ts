@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import path from 'path';
 import { is } from './env';
+import { windowBackgroundColor } from './theme';
 
 let settingsWindow: BrowserWindow | null = null;
 
@@ -16,7 +17,7 @@ export function openSettingsWindow(): void {
     height: 500,
     resizable: false,
     title: 'FormVault — Settings',
-    backgroundColor: '#0f0f13',
+    backgroundColor: windowBackgroundColor(),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),

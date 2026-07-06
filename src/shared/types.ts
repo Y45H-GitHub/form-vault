@@ -65,7 +65,6 @@ export interface NewProfile {
 export interface AppSettings {
   hotkey: string;
   launchAtStartup: boolean;
-  theme: 'dark' | 'light';
   activeProfileId: string | null;
 }
 

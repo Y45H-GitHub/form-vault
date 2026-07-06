@@ -1,30 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root,
-:root.dark {
-  --fv-bg-primary: 15 15 19;
-  --fv-bg-secondary: 26 26 36;
-  --fv-bg-card: 34 34 58;
-  --fv-bg-hover: 45 45 69;
-  --fv-text-primary: 240 240 245;
-  --fv-text-secondary: 153 153 187;
-  --fv-text-muted: 102 102 128;
-  --fv-border: 51 51 85;
+/*
+ * FormVault theme variables (RGB triples — consumed by tailwind.config.js).
+ * Light is the base; dark overrides via prefers-color-scheme so the app
+ * follows the Windows theme automatically. No in-app theme switch.
+ */
+:root {
+  --fv-canvas: 246 246 249;        /* window background          */
+  --fv-surface: 255 255 255;       /* sidebars, input wells      */
+  --fv-card: 255 255 255;          /* cards, floating panels     */
+  --fv-hover: 240 240 245;         /* hover fill                 */
+  --fv-active: 232 232 239;        /* pressed / selected fill    */
+
+  --fv-ink: 26 26 34;              /* primary text   (AAA on card)  */
+  --fv-ink-secondary: 84 84 102;   /* secondary text (AA on card)   */
+  --fv-ink-muted: 132 132 150;     /* placeholders, hints           */
+
+  --fv-stroke: 224 224 232;        /* standard border               */
+  --fv-stroke-subtle: 236 236 242; /* hairline dividers             */
+
+  --fv-accent: 79 70 229;          /* indigo-600 — AA on white      */
+  --fv-accent-hover: 67 56 202;
+  --fv-accent-ink: 255 255 255;    /* text on accent fills          */
+
+  --fv-success: 22 163 74;
+  --fv-warning: 180 83 9;
+  --fv-danger: 220 38 38;
+
+  --fv-shadow: 20 20 43;
 }
 
-:root.light {
-  --fv-bg-primary: 245 245 250;
-  --fv-bg-secondary: 255 255 255;
-  --fv-bg-card: 255 255 255;
-  --fv-bg-hover: 232 232 240;
-  --fv-text-primary: 22 22 31;
-  --fv-text-secondary: 85 85 107;
-  --fv-text-muted: 136 136 160;
-  --fv-border: 220 220 230;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fv-canvas: 14 14 17;
+    --fv-surface: 21 21 26;
+    --fv-card: 28 28 35;
+    --fv-hover: 40 40 50;
+    --fv-active: 50 50 62;
+
+    --fv-ink: 235 235 242;
+    --fv-ink-secondary: 158 158 178;
+    --fv-ink-muted: 110 110 130;
+
+    --fv-stroke: 58 58 72;
+    --fv-stroke-subtle: 42 42 53;
+
+    --fv-accent: 99 102 241;       /* indigo-500 — AA on dark card  */
+    --fv-accent-hover: 129 140 248;
+    --fv-accent-ink: 255 255 255;
+
+    --fv-success: 74 222 128;
+    --fv-warning: 251 191 36;
+    --fv-danger: 248 113 113;
+
+    --fv-shadow: 0 0 0;
+  }
 }
 
 * {
@@ -39,11 +71,24 @@ body,
 }
 
 body {
-  @apply bg-bg-primary text-text-primary font-sans antialiased;
+  /* No background here: the popup window is transparent and each window
+     root paints its own canvas. */
+  @apply font-sans text-body text-ink antialiased;
+}
+
+/* Keyboard-first: visible focus ring everywhere, only for keyboard focus */
+:focus-visible {
+  outline: 2px solid rgb(var(--fv-accent));
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: rgb(var(--fv-accent) / 0.25);
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -51,6 +96,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333355;
-  border-radius: 4px;
+  background: rgb(var(--fv-ink-muted) / 0.35);
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--fv-ink-muted) / 0.55);
+  border: 3px solid transparent;
+  background-clip: content-box;
 }

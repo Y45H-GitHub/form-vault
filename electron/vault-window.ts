@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import path from 'path';
 import { is } from './env';
+import { windowBackgroundColor } from './theme';
 
 let vaultWindow: BrowserWindow | null = null;
 
@@ -17,7 +18,7 @@ export function openVaultWindow(): void {
     minWidth: 700,
     minHeight: 480,
     title: 'FormVault — Vault Manager',
-    backgroundColor: '#0f0f13',
+    backgroundColor: windowBackgroundColor(),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),

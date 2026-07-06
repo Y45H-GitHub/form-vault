@@ -120,7 +120,6 @@ export function registerIpcHandlers(): void {
     return {
       hotkey: settings.hotkey ?? null,
       launchAtStartup: settings.launchAtStartup === 'true',
-      theme: settings.theme ?? 'dark',
       activeProfileId: settings.activeProfileId ?? db.getDefaultProfileId()
     };
   });
