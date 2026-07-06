@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { PlusIcon, TrashIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { cn } from '../shared/cn';
+import { ipc } from '../shared/ipc-client';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import type { Profile } from '../shared/types';
@@ -26,62 +27,80 @@ export function ProfileManager({ profiles, activeProfileId, onSelect, onAdd, onD
   }
 
   return (
-    <div className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-bg-secondary">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-text-muted">Profiles</h2>
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-stroke-subtle bg-surface">
+      <div className="flex items-center gap-2 px-4 pb-3 pt-4">
+        <div className="flex h-6 w-6 items-center justify-center rounded-control bg-accent text-caption font-bold text-accent-ink">
+          FV
+        </div>
+        <span className="font-display text-heading text-ink">FormVault</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
-        {profiles.map((profile) => (
-          <div
-            key={profile.id}
-            className={cn(
-              'group flex items-center gap-2 rounded-md px-2.5 py-2 text-sm',
-              profile.id === activeProfileId ? 'bg-accent/15 text-accent' : 'text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            <button onClick={() => onSelect(profile.id)} className="flex flex-1 items-center gap-2 text-left">
-              <span>{profile.icon}</span>
-              <span className="truncate">{profile.name}</span>
-            </button>
-            {!profile.isDefault && (
-              <button
-                onClick={() => void onDelete(profile.id)}
-                className="hidden rounded p-1 text-text-muted hover:bg-red-500/10 hover:text-red-400 group-hover:block"
-                title="Delete profile"
-              >
-                <Trash2 size={13} />
+      <div className="px-4 pb-1 pt-2 text-caption font-semibold uppercase tracking-wide text-ink-muted">
+        Profiles
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-2">
+        {profiles.map((profile) => {
+          const isActive = profile.id === activeProfileId;
+          return (
+            <div
+              key={profile.id}
+              className={cn(
+                'group relative flex items-center gap-2 rounded-control text-body transition-colors',
+                isActive ? 'bg-active text-ink' : 'text-ink-secondary hover:bg-hover hover:text-ink'
+              )}
+            >
+              {isActive && <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-accent" />}
+              <button onClick={() => onSelect(profile.id)} className="flex min-w-0 flex-1 items-center gap-2 px-2.5 py-1.5 text-left">
+                <span aria-hidden>{profile.icon}</span>
+                <span className="truncate font-medium">{profile.name}</span>
               </button>
-            )}
-          </div>
-        ))}
-      </div>
+              {!profile.isDefault && (
+                <button
+                  onClick={() => void onDelete(profile.id)}
+                  aria-label={`Delete profile ${profile.name}`}
+                  className="mr-1.5 hidden rounded p-1 text-ink-muted transition-colors hover:bg-danger/10 hover:text-danger group-hover:block"
+                >
+                  <TrashIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          );
+        })}
 
-      <div className="border-t border-border p-2">
         {adding ? (
-          <form onSubmit={handleAdd} className="flex flex-col gap-2">
+          <form onSubmit={handleAdd} className="mt-1 flex flex-col gap-1.5 px-1 py-1">
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Profile name"
-              onBlur={() => !name && setAdding(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setAdding(false)}
             />
             <div className="flex gap-1.5">
               <Button type="submit" size="sm" className="flex-1">
                 Add
               </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => setAdding(false)}>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
                 Cancel
               </Button>
             </div>
           </form>
         ) : (
-          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setAdding(true)}>
-            <Plus size={14} /> New Profile
-          </Button>
+          <button
+            onClick={() => setAdding(true)}
+            className="mt-1 flex w-full items-center gap-2 rounded-control px-2.5 py-1.5 text-body text-ink-muted transition-colors hover:bg-hover hover:text-ink"
+          >
+            <PlusIcon className="h-4 w-4" /> New profile
+          </button>
         )}
+      </nav>
+
+      <div className="border-t border-stroke-subtle p-2">
+        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => void ipc.openSettings()}>
+          <Cog6ToothIcon className="h-4 w-4" /> Settings
+        </Button>
       </div>
-    </div>
+    </aside>
   );
 }

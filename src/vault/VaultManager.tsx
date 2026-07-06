@@ -1,24 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  DocumentDuplicateIcon,
+  CheckIcon,
+  MagnifyingGlassIcon
+} from '@heroicons/react/20/solid';
+import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
 import { ipc } from '../shared/ipc-client';
-import { useTheme } from '../shared/useTheme';
-import { CATEGORIES } from '../shared/constants';
+import { CATEGORIES, CATEGORY_COLORS } from '../shared/constants';
 import { isSensitiveField, maskValue } from '../shared/mask';
+import { cn } from '../shared/cn';
 import { Button } from '../shared/ui/Button';
+import { Input } from '../shared/ui/Input';
+import { Kbd } from '../shared/ui/Kbd';
+import { EmptyState } from '../shared/ui/EmptyState';
 import { ProfileManager } from './ProfileManager';
 import { FieldForm } from './FieldForm';
 import { FileVault } from './FileVault';
 import type { Field, FileRef, NewField, Profile, UpdateField } from '../shared/types';
 
 export function VaultManager() {
-  useTheme();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [fields, setFields] = useState<Field[]>([]);
   const [files, setFiles] = useState<FileRef[]>([]);
+  const [filter, setFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingField, setEditingField] = useState<Field | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const loadProfiles = useCallback(async () => {
     const fetched = await ipc.getProfiles();
@@ -49,15 +63,26 @@ export function VaultManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProfileId]);
 
+  const filteredFields = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return fields;
+    return fields.filter(
+      (f) =>
+        f.label.toLowerCase().includes(q) ||
+        f.value.toLowerCase().includes(q) ||
+        (f.shortcut ?? '').toLowerCase().includes(q)
+    );
+  }, [fields, filter]);
+
   const fieldsByCategory = useMemo(() => {
     const map = new Map<string, Field[]>();
-    for (const field of fields) {
+    for (const field of filteredFields) {
       const list = map.get(field.category) ?? [];
       list.push(field);
       map.set(field.category, list);
     }
     return map;
-  }, [fields]);
+  }, [filteredFields]);
 
   async function handleAddProfile(name: string) {
     const created = await ipc.addProfile({ name });
@@ -83,6 +108,12 @@ export function VaultManager() {
     await ipc.deleteField(fieldId);
   }
 
+  async function handleCopyField(fieldId: string) {
+    await ipc.copyField(fieldId, false);
+    setCopiedId(fieldId);
+    setTimeout(() => setCopiedId((id) => (id === fieldId ? null : id)), 1200);
+  }
+
   function toggleReveal(fieldId: string) {
     setRevealed((prev) => {
       const next = new Set(prev);
@@ -95,7 +126,7 @@ export function VaultManager() {
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
   return (
-    <div className="flex h-screen w-screen bg-bg-primary text-text-primary">
+    <div className="flex h-screen w-screen bg-canvas text-ink">
       <ProfileManager
         profiles={profiles}
         activeProfileId={activeProfileId}
@@ -104,11 +135,26 @@ export function VaultManager() {
         onDelete={handleDeleteProfile}
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">{activeProfile ? `${activeProfile.icon} ${activeProfile.name}` : 'Vault'}</h1>
-            <p className="text-sm text-text-muted">Manage your saved fields and files</p>
+      <main className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center gap-3 border-b border-stroke-subtle bg-canvas px-6 py-3.5">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-display text-ink">
+              {activeProfile ? activeProfile.name : 'Vault'}
+            </h1>
+            <p className="text-label text-ink-muted">
+              {fields.length} {fields.length === 1 ? 'field' : 'fields'} · {files.length}{' '}
+              {files.length === 1 ? 'file' : 'files'}
+            </p>
+          </div>
+          <div className="relative w-52">
+            <MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+            <Input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter fields…"
+              className="pl-8"
+              aria-label="Filter fields"
+            />
           </div>
           <Button
             onClick={() => {
@@ -117,69 +163,145 @@ export function VaultManager() {
             }}
             disabled={!activeProfileId}
           >
-            <Plus size={16} /> Add Field
+            <PlusIcon className="h-4 w-4" /> Add field
           </Button>
-        </div>
+        </header>
 
-        {CATEGORIES.map((cat) => {
-          const list = fieldsByCategory.get(cat.id);
-          if (!list || list.length === 0) return null;
-          return (
-            <section key={cat.id} className="mb-6">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">{cat.label}</h3>
-              <div className="overflow-hidden rounded-lg border border-border">
-                {list.map((field, i) => {
-                  const sensitive = isSensitiveField(field.shortcut);
-                  const shown = revealed.has(field.id) || !sensitive;
-                  const displayValue = field.value ? (shown ? field.value : maskValue(field.value)) : '—';
-                  return (
-                    <div
-                      key={field.id}
-                      className={rowClass(i, list.length)}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {filteredFields.length === 0 ? (
+            <div className="rounded-card border border-dashed border-stroke">
+              {fields.length === 0 ? (
+                <EmptyState
+                  icon={ArchiveBoxIcon}
+                  title="No fields in this profile"
+                  description="Add your first field — a name, PAN, bank account — and paste it anywhere with one shortcut."
+                  action={
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setEditingField(null);
+                        setFormOpen(true);
+                      }}
                     >
-                      <span className="text-lg">{field.icon}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium">{field.label}</span>
-                          {field.shortcut && (
-                            <span className="rounded bg-bg-hover px-1.5 py-0.5 text-[10px] text-text-muted">
-                              {field.shortcut}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          className="truncate text-sm text-text-secondary hover:text-text-primary disabled:cursor-default"
-                          onClick={() => sensitive && toggleReveal(field.id)}
-                          disabled={!sensitive}
-                        >
-                          {displayValue}
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setEditingField(field);
-                          setFormOpen(true);
-                        }}
-                        className="rounded-md p-1.5 text-text-secondary hover:bg-bg-hover hover:text-text-primary"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => void handleDeleteField(field.id)}
-                        className="rounded-md p-1.5 text-text-secondary hover:bg-red-500/10 hover:text-red-400"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
+                      <PlusIcon className="h-3.5 w-3.5" /> Add field
+                    </Button>
+                  }
+                />
+              ) : (
+                <EmptyState icon={MagnifyingGlassIcon} title="No matches" description="Try a different filter." />
+              )}
+            </div>
+          ) : (
+            CATEGORIES.map((cat) => {
+              const list = fieldsByCategory.get(cat.id);
+              if (!list || list.length === 0) return null;
+              return (
+                <section key={cat.id} className="mb-5">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[cat.id] }} />
+                    <h3 className="text-caption font-semibold uppercase tracking-wide text-ink-muted">{cat.label}</h3>
+                    <span className="text-caption text-ink-muted">{list.length}</span>
+                  </div>
 
-        {activeProfileId && <FileVault profileId={activeProfileId} files={files} onChanged={() => loadProfileData(activeProfileId)} />}
-      </div>
+                  <div className="overflow-hidden rounded-card border border-stroke bg-card shadow-elevation-1">
+                    {list.map((field, i) => {
+                      const sensitive = isSensitiveField(field.shortcut);
+                      const shown = revealed.has(field.id) || !sensitive;
+                      const hasValue = field.value.length > 0;
+                      const displayValue = hasValue ? (shown ? field.value : maskValue(field.value)) : '—';
+                      return (
+                        <div
+                          key={field.id}
+                          className={cn(
+                            'group flex items-center gap-3 px-3 py-2 transition-colors hover:bg-hover',
+                            i < list.length - 1 && 'border-b border-stroke-subtle'
+                          )}
+                        >
+                          <span
+                            aria-hidden
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-hover text-[15px] leading-none"
+                          >
+                            {field.icon}
+                          </span>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate text-body font-medium text-ink">{field.label}</span>
+                              {field.shortcut && <Kbd>{field.shortcut}</Kbd>}
+                            </div>
+                            <span
+                              className={cn(
+                                'block truncate text-label',
+                                hasValue ? 'font-mono text-ink-secondary' : 'italic text-ink-muted'
+                              )}
+                            >
+                              {displayValue}
+                            </span>
+                          </div>
+
+                          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                            {sensitive && hasValue && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={shown ? 'Hide value' : 'Reveal value'}
+                                title={shown ? 'Hide value' : 'Reveal value'}
+                                onClick={() => toggleReveal(field.id)}
+                              >
+                                {shown ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                              </Button>
+                            )}
+                            {hasValue && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Copy value"
+                                title="Copy value"
+                                onClick={() => void handleCopyField(field.id)}
+                              >
+                                {copiedId === field.id ? (
+                                  <CheckIcon className="h-4 w-4 text-success" />
+                                ) : (
+                                  <DocumentDuplicateIcon className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Edit field"
+                              title="Edit field"
+                              onClick={() => {
+                                setEditingField(field);
+                                setFormOpen(true);
+                              }}
+                            >
+                              <PencilSquareIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="icon"
+                              aria-label="Delete field"
+                              title="Delete field"
+                              onClick={() => void handleDeleteField(field.id)}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })
+          )}
+
+          {activeProfileId && (
+            <FileVault profileId={activeProfileId} files={files} onChanged={() => loadProfileData(activeProfileId)} />
+          )}
+        </div>
+      </main>
 
       {formOpen && activeProfileId && (
         <FieldForm
@@ -191,10 +313,4 @@ export function VaultManager() {
       )}
     </div>
   );
-}
-
-function rowClass(index: number, total: number): string {
-  const base = 'flex items-center gap-3 px-3 py-2.5 bg-bg-card';
-  const border = index < total - 1 ? ' border-b border-border' : '';
-  return base + border;
 }

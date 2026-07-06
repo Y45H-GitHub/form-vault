@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { Button } from '../shared/ui/Button';
-import { Input, Select, Textarea } from '../shared/ui/Input';
+import { Dialog } from '../shared/ui/Dialog';
+import { Input, Select, Textarea, FieldLabel } from '../shared/ui/Input';
 import { CATEGORIES } from '../shared/constants';
 import type { Category, Field, FieldType, NewField, UpdateField } from '../shared/types';
 
@@ -17,7 +17,7 @@ const FIELD_TYPES: { id: FieldType; label: string }[] = [
   { id: 'number', label: 'Number' },
   { id: 'date', label: 'Date' },
   { id: 'multiline', label: 'Multiline' },
-  { id: 'file_path', label: 'File Path' }
+  { id: 'file_path', label: 'File path' }
 ];
 
 export function FieldForm({ profileId, field, onClose, onSave }: FieldFormProps) {
@@ -34,27 +34,13 @@ export function FieldForm({ profileId, field, onClose, onSave }: FieldFormProps)
     if (!label.trim()) return;
     setSaving(true);
     try {
-      const normalizedShortcut = shortcut.trim() ? (shortcut.trim().startsWith('!') ? shortcut.trim() : `!${shortcut.trim()}`) : null;
+      const trimmed = shortcut.trim();
+      const normalizedShortcut = trimmed ? (trimmed.startsWith('!') ? trimmed : `!${trimmed}`) : null;
+      const common = { label: label.trim(), value, category, fieldType, shortcut: normalizedShortcut, icon };
       if (field) {
-        await onSave({
-          id: field.id,
-          label: label.trim(),
-          value,
-          category,
-          fieldType,
-          shortcut: normalizedShortcut,
-          icon
-        } satisfies UpdateField);
+        await onSave({ id: field.id, ...common } satisfies UpdateField);
       } else {
-        await onSave({
-          profileId,
-          label: label.trim(),
-          value,
-          category,
-          fieldType,
-          shortcut: normalizedShortcut,
-          icon
-        } satisfies NewField);
+        await onSave({ profileId, ...common } satisfies NewField);
       }
       onClose();
     } finally {
@@ -63,78 +49,76 @@ export function FieldForm({ profileId, field, onClose, onSave }: FieldFormProps)
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-xl border border-border bg-bg-card shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-text-primary">{field ? 'Edit Field' : 'Add New Field'}</h2>
-          <button onClick={onClose} className="rounded-md p-1 text-text-secondary hover:bg-bg-hover">
-            <X size={16} />
-          </button>
+    <Dialog title={field ? 'Edit field' : 'Add field'} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <div className="flex gap-3">
+          <div className="w-14">
+            <FieldLabel>Icon</FieldLabel>
+            <Input value={icon} onChange={(e) => setIcon(e.target.value)} maxLength={4} className="text-center" aria-label="Icon" />
+          </div>
+          <div className="flex-1">
+            <FieldLabel>Label</FieldLabel>
+            <Input
+              autoFocus
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g. PAN Number"
+              required
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4">
-          <div className="flex gap-3">
-            <div className="w-16">
-              <label className="mb-1 block text-xs text-text-secondary">Icon</label>
-              <Input value={icon} onChange={(e) => setIcon(e.target.value)} maxLength={4} className="text-center" />
-            </div>
-            <div className="flex-1">
-              <label className="mb-1 block text-xs text-text-secondary">Label</label>
-              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. PAN Number" required />
-            </div>
-          </div>
+        <div>
+          <FieldLabel>Value</FieldLabel>
+          {fieldType === 'multiline' ? (
+            <Textarea value={value} onChange={(e) => setValue(e.target.value)} />
+          ) : (
+            <Input
+              type={fieldType === 'date' ? 'date' : fieldType === 'number' ? 'number' : 'text'}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+          )}
+        </div>
 
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs text-text-secondary">Value</label>
-            {fieldType === 'multiline' ? (
-              <Textarea value={value} onChange={(e) => setValue(e.target.value)} />
-            ) : (
-              <Input
-                type={fieldType === 'date' ? 'date' : fieldType === 'number' ? 'number' : 'text'}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            )}
+            <FieldLabel>Category</FieldLabel>
+            <Select value={category} onChange={(e) => setCategory(e.target.value as Category)}>
+              {CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </Select>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs text-text-secondary">Category</label>
-              <Select value={category} onChange={(e) => setCategory(e.target.value as Category)}>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-text-secondary">Field Type</label>
-              <Select value={fieldType} onChange={(e) => setFieldType(e.target.value as FieldType)}>
-                {FIELD_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
           <div>
-            <label className="mb-1 block text-xs text-text-secondary">Shortcut (optional)</label>
-            <Input value={shortcut} onChange={(e) => setShortcut(e.target.value)} placeholder="!pan" />
+            <FieldLabel>Type</FieldLabel>
+            <Select value={fieldType} onChange={(e) => setFieldType(e.target.value as FieldType)}>
+              {FIELD_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </Select>
           </div>
+        </div>
 
-          <div className="mt-2 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving…' : 'Save'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div>
+          <FieldLabel>Text-expansion shortcut (optional)</FieldLabel>
+          <Input value={shortcut} onChange={(e) => setShortcut(e.target.value)} placeholder="!pan" className="font-mono" />
+          <p className="mt-1 text-caption text-ink-muted">Type this anywhere followed by Space to paste the value.</p>
+        </div>
+
+        <div className="mt-1 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={saving || !label.trim()}>
+            {saving ? 'Saving…' : field ? 'Save changes' : 'Add field'}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
   );
 }
