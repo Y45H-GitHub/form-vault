@@ -3,7 +3,8 @@ import { Button } from '../shared/ui/Button';
 import { Dialog } from '../shared/ui/Dialog';
 import { Input, Select, Textarea, FieldLabel } from '../shared/ui/Input';
 import { IconPicker } from '../shared/ui/IconPicker';
-import { CATEGORIES, DEFAULT_FIELD_ICON } from '../shared/constants';
+import { CATEGORIES } from '../shared/constants';
+import { DEFAULT_FIELD_ICON } from '../shared/fieldIcons';
 import type { Category, Field, FieldType, NewField, UpdateField } from '../shared/types';
 
 interface FieldFormProps {

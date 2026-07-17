@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FIELD_ICONS } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { FieldIcon } from './FieldIcon';
 import { cn } from '../cn';
 

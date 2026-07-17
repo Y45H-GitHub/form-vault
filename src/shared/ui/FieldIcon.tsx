@@ -1,4 +1,4 @@
-import { FIELD_ICONS, DEFAULT_FIELD_ICON } from '../constants';
+import { FIELD_ICONS, DEFAULT_FIELD_ICON } from '../fieldIcons';
 import { cn } from '../cn';
 
 interface FieldIconProps {
