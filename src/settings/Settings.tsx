@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/20/solid';
+import { DownloadSimple, UploadSimple, CheckCircle, XCircle } from '@phosphor-icons/react';
 import { ipc } from '../shared/ipc-client';
 import { DEFAULT_HOTKEY } from '../shared/constants';
+import { cn } from '../shared/cn';
 import { Button } from '../shared/ui/Button';
 import { Switch } from '../shared/ui/Switch';
 import { Kbd } from '../shared/ui/Kbd';
+import { useToast } from '../shared/ui/useToast';
 
 function codeToAcceleratorKey(code: string): string | null {
   if (code.startsWith('Key')) return code.slice(3);
@@ -54,7 +56,7 @@ function SettingsRow({
   divider?: boolean;
 }) {
   return (
-    <div className={'flex items-center gap-4 px-4 py-3' + (divider ? ' border-b border-stroke-subtle' : '')}>
+    <div className={cn('flex items-center gap-4 px-4 py-3.5', divider && 'border-b border-stroke-subtle')}>
       <div className="min-w-0 flex-1">
         <p className="text-body font-medium text-ink">{title}</p>
         {description && <p className="mt-0.5 text-label text-ink-muted">{description}</p>}
@@ -64,13 +66,26 @@ function SettingsRow({
   );
 }
 
+function CapabilityBadge({ available }: { available: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {available ? (
+        <CheckCircle weight="bold" className="h-4 w-4 text-success" />
+      ) : (
+        <XCircle weight="bold" className="h-4 w-4 text-danger" />
+      )}
+      <span className="text-body text-ink-secondary">{available ? 'Available' : 'Not available'}</span>
+    </div>
+  );
+}
+
 export function Settings() {
+  const { toast } = useToast();
   const [hotkey, setHotkey] = useState(DEFAULT_HOTKEY);
   const [recording, setRecording] = useState(false);
   const [launchAtStartup, setLaunchAtStartup] = useState(true);
   const [version, setVersion] = useState('');
   const [capabilities, setCapabilities] = useState({ autoPaste: true, textExpansion: true });
-  const [dataStatus, setDataStatus] = useState<string | null>(null);
 
   useEffect(() => {
     void ipc.getSettings().then((s) => {
@@ -106,15 +121,15 @@ export function Settings() {
   }
 
   async function handleExport() {
-    setDataStatus(null);
     const result = await ipc.exportVault();
-    setDataStatus(result.ok ? `Exported to ${result.path}` : 'Export cancelled');
+    if (result.ok) toast('success', `Exported to ${result.path}`);
+    else toast('info', 'Export cancelled');
   }
 
   async function handleImport() {
-    setDataStatus(null);
     const result = await ipc.importVault();
-    setDataStatus(result.ok ? 'Vault imported successfully' : 'Import cancelled');
+    if (result.ok) toast('success', 'Vault imported successfully');
+    else toast('info', 'Import cancelled');
   }
 
   const hotkeyParts = hotkey.replace('CommandOrControl', 'Ctrl').split('+');
@@ -130,13 +145,18 @@ export function Settings() {
             description={recording ? 'Press a key combination, or Esc to cancel' : 'Works anywhere in Windows'}
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center gap-1">
+              <div
+                className={cn(
+                  'flex items-center gap-1 rounded-control',
+                  recording && 'ring-2 ring-accent ring-offset-2 ring-offset-card animate-pulse-ring'
+                )}
+              >
                 {recording ? (
-                  <span className="text-label text-accent">Recording…</span>
+                  <span className="px-1 text-label text-accent">Recording…</span>
                 ) : (
                   hotkeyParts.map((part) => <Kbd key={part}>{part}</Kbd>)
                 )}
-              </span>
+              </div>
               <Button size="sm" variant="secondary" onClick={() => setRecording(true)} disabled={recording}>
                 Change
               </Button>
@@ -153,28 +173,29 @@ export function Settings() {
         <SettingsGroup title="Data">
           <SettingsRow divider title="Export vault" description="Save all profiles and fields as a JSON file">
             <Button size="sm" variant="secondary" onClick={() => void handleExport()}>
-              <ArrowDownTrayIcon className="h-3.5 w-3.5" /> Export
+              <DownloadSimple weight="regular" className="h-3.5 w-3.5" /> Export
             </Button>
           </SettingsRow>
           <SettingsRow title="Import vault" description="Restore from a previously exported file">
             <Button size="sm" variant="secondary" onClick={() => void handleImport()}>
-              <ArrowUpTrayIcon className="h-3.5 w-3.5" /> Import
+              <UploadSimple weight="regular" className="h-3.5 w-3.5" /> Import
             </Button>
           </SettingsRow>
         </SettingsGroup>
 
-        {dataStatus && <p className="-mt-2 px-1 text-label text-ink-muted">{dataStatus}</p>}
+        <SettingsGroup title="About">
+          <SettingsRow divider title="Version">
+            <span className="font-mono text-body text-ink-secondary">{version ? `v${version}` : '—'}</span>
+          </SettingsRow>
+          <SettingsRow divider title="Auto-paste" description="Automatically pastes after copying">
+            <CapabilityBadge available={capabilities.autoPaste} />
+          </SettingsRow>
+          <SettingsRow title="Text expansion" description="Type a shortcut to paste the value">
+            <CapabilityBadge available={capabilities.textExpansion} />
+          </SettingsRow>
+        </SettingsGroup>
 
-        {(!capabilities.autoPaste || !capabilities.textExpansion) && (
-          <div className="rounded-card border border-warning/30 bg-warning/10 px-4 py-3 text-label text-warning">
-            Auto-paste and text expansion are unavailable — a native module hasn't been compiled on this machine.
-            Copy-to-clipboard still works everywhere. See the README for setup.
-          </div>
-        )}
-
-        <p className="mt-1 text-caption text-ink-muted">
-          FormVault {version ? `v${version}` : ''} — appearance follows your Windows theme.
-        </p>
+        <p className="mt-1 text-caption text-ink-muted">Appearance follows your Windows theme.</p>
       </div>
     </div>
   );
