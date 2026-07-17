@@ -1,4 +1,93 @@
+import {
+  User,
+  UserCircle,
+  Baby,
+  Cake,
+  Phone,
+  EnvelopeSimple,
+  House,
+  MapPin,
+  IdentificationCard,
+  Fingerprint,
+  Password,
+  Key,
+  Lock,
+  Bank,
+  CreditCard,
+  Wallet,
+  CurrencyDollar,
+  ArrowsLeftRight,
+  QrCode,
+  FileText,
+  Certificate,
+  Notebook,
+  Briefcase,
+  Buildings,
+  Receipt,
+  Globe,
+  At,
+  Link,
+  Hash,
+  Tag,
+  Car,
+  AirplaneTilt,
+  FirstAid,
+  Heartbeat,
+  CalendarBlank,
+  Clock,
+  Star,
+  type Icon
+} from '@phosphor-icons/react';
 import type { Category, NewField } from './types';
+
+/** Maps a field's stored `icon` string key to a Phosphor icon component. */
+export const FIELD_ICONS: Record<string, Icon> = {
+  // Personal
+  user: User,
+  'user-circle': UserCircle,
+  baby: Baby,
+  cake: Cake,
+  phone: Phone,
+  envelope: EnvelopeSimple,
+  house: House,
+  'map-pin': MapPin,
+  // Identity / Documents
+  'id-card': IdentificationCard,
+  fingerprint: Fingerprint,
+  password: Password,
+  key: Key,
+  lock: Lock,
+  // Financial
+  bank: Bank,
+  'credit-card': CreditCard,
+  wallet: Wallet,
+  currency: CurrencyDollar,
+  transfer: ArrowsLeftRight,
+  'qr-code': QrCode,
+  // Documents / Business
+  'file-text': FileText,
+  certificate: Certificate,
+  notebook: Notebook,
+  briefcase: Briefcase,
+  buildings: Buildings,
+  receipt: Receipt,
+  // Online
+  globe: Globe,
+  'at-sign': At,
+  link: Link,
+  hash: Hash,
+  // Generic / Other
+  tag: Tag,
+  car: Car,
+  airplane: AirplaneTilt,
+  'first-aid': FirstAid,
+  heartbeat: Heartbeat,
+  calendar: CalendarBlank,
+  clock: Clock,
+  star: Star
+};
+
+export const DEFAULT_FIELD_ICON = 'tag';
 
 export const CATEGORIES: { id: Category; label: string }[] = [
   { id: 'personal', label: 'Personal' },
@@ -25,24 +114,24 @@ export const DEFAULT_PROFILE_NAME = 'Personal';
 
 /** Seeded on first launch for the default profile. Values are left empty for the user to fill in. */
 export const DEFAULT_FIELDS: Omit<NewField, 'profileId'>[] = [
-  { category: 'personal', label: 'Full Name', value: '', fieldType: 'text', shortcut: '!name', icon: '👤', sortOrder: 0 },
-  { category: 'personal', label: 'Date of Birth', value: '', fieldType: 'date', shortcut: '!dob', icon: '🎂', sortOrder: 1 },
-  { category: 'personal', label: 'PAN Number', value: '', fieldType: 'text', shortcut: '!pan', icon: '🪪', sortOrder: 2 },
-  { category: 'personal', label: 'Aadhaar Number', value: '', fieldType: 'text', shortcut: '!aadhaar', icon: '🪪', sortOrder: 3 },
-  { category: 'personal', label: 'Mobile', value: '', fieldType: 'text', shortcut: '!mobile', icon: '📱', sortOrder: 4 },
-  { category: 'personal', label: 'Email', value: '', fieldType: 'text', shortcut: '!email', icon: '✉️', sortOrder: 5 },
-  { category: 'personal', label: "Father's Name", value: '', fieldType: 'text', shortcut: '!fname', icon: '👤', sortOrder: 6 },
-  { category: 'personal', label: 'Address', value: '', fieldType: 'multiline', shortcut: '!addr', icon: '🏠', sortOrder: 7 },
-  { category: 'personal', label: 'Pincode', value: '', fieldType: 'text', shortcut: '!pin', icon: '📍', sortOrder: 8 },
+  { category: 'personal', label: 'Full Name', value: '', fieldType: 'text', shortcut: '!name', icon: 'user', sortOrder: 0 },
+  { category: 'personal', label: 'Date of Birth', value: '', fieldType: 'date', shortcut: '!dob', icon: 'cake', sortOrder: 1 },
+  { category: 'personal', label: 'PAN Number', value: '', fieldType: 'text', shortcut: '!pan', icon: 'id-card', sortOrder: 2 },
+  { category: 'personal', label: 'Aadhaar Number', value: '', fieldType: 'text', shortcut: '!aadhaar', icon: 'id-card', sortOrder: 3 },
+  { category: 'personal', label: 'Mobile', value: '', fieldType: 'text', shortcut: '!mobile', icon: 'phone', sortOrder: 4 },
+  { category: 'personal', label: 'Email', value: '', fieldType: 'text', shortcut: '!email', icon: 'envelope', sortOrder: 5 },
+  { category: 'personal', label: "Father's Name", value: '', fieldType: 'text', shortcut: '!fname', icon: 'user', sortOrder: 6 },
+  { category: 'personal', label: 'Address', value: '', fieldType: 'multiline', shortcut: '!addr', icon: 'house', sortOrder: 7 },
+  { category: 'personal', label: 'Pincode', value: '', fieldType: 'text', shortcut: '!pin', icon: 'map-pin', sortOrder: 8 },
 
-  { category: 'financial', label: 'Bank Name', value: '', fieldType: 'text', shortcut: '!bankname', icon: '🏦', sortOrder: 0 },
-  { category: 'financial', label: 'Account Number', value: '', fieldType: 'text', shortcut: '!accno', icon: '💳', sortOrder: 1 },
-  { category: 'financial', label: 'IFSC Code', value: '', fieldType: 'text', shortcut: '!ifsc', icon: '🏦', sortOrder: 2 },
-  { category: 'financial', label: 'UPI ID', value: '', fieldType: 'text', shortcut: '!upi', icon: '💸', sortOrder: 3 },
+  { category: 'financial', label: 'Bank Name', value: '', fieldType: 'text', shortcut: '!bankname', icon: 'bank', sortOrder: 0 },
+  { category: 'financial', label: 'Account Number', value: '', fieldType: 'text', shortcut: '!accno', icon: 'credit-card', sortOrder: 1 },
+  { category: 'financial', label: 'IFSC Code', value: '', fieldType: 'text', shortcut: '!ifsc', icon: 'bank', sortOrder: 2 },
+  { category: 'financial', label: 'UPI ID', value: '', fieldType: 'text', shortcut: '!upi', icon: 'qr-code', sortOrder: 3 },
 
-  { category: 'business', label: 'GST Number', value: '', fieldType: 'text', shortcut: '!gst', icon: '🧾', sortOrder: 0 },
-  { category: 'business', label: 'Company Name', value: '', fieldType: 'text', shortcut: '!company', icon: '🏢', sortOrder: 1 },
-  { category: 'business', label: 'CIN', value: '', fieldType: 'text', shortcut: '!cin', icon: '🧾', sortOrder: 2 }
+  { category: 'business', label: 'GST Number', value: '', fieldType: 'text', shortcut: '!gst', icon: 'receipt', sortOrder: 0 },
+  { category: 'business', label: 'Company Name', value: '', fieldType: 'text', shortcut: '!company', icon: 'buildings', sortOrder: 1 },
+  { category: 'business', label: 'CIN', value: '', fieldType: 'text', shortcut: '!cin', icon: 'receipt', sortOrder: 2 }
 ];
 
 export const IPC = {

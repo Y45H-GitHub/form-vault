@@ -4,57 +4,70 @@
 
 /*
  * FormVault theme variables (RGB triples — consumed by tailwind.config.js).
+ * Dark-luxury minimalism: deep-slate neutral base + single cyan accent.
  * Light is the base; dark overrides via prefers-color-scheme so the app
  * follows the Windows theme automatically. No in-app theme switch.
  */
 :root {
-  --fv-canvas: 246 246 249;        /* window background          */
-  --fv-surface: 255 255 255;       /* sidebars, input wells      */
-  --fv-card: 255 255 255;          /* cards, floating panels     */
-  --fv-hover: 240 240 245;         /* hover fill                 */
-  --fv-active: 232 232 239;        /* pressed / selected fill    */
+  --fv-canvas: 247 248 250; /* #F7F8FA */
+  --fv-surface: 255 255 255; /* #FFFFFF */
+  --fv-card: 255 255 255; /* #FFFFFF */
+  --fv-popup-bg: rgba(255, 255, 255, 0.8);
+  --fv-popup-border: rgba(0, 0, 0, 0.08);
+  --fv-hover: 238 240 245; /* #EEF0F5 */
+  --fv-active: 226 229 238; /* #E2E5EE */
 
-  --fv-ink: 26 26 34;              /* primary text   (AAA on card)  */
-  --fv-ink-secondary: 84 84 102;   /* secondary text (AA on card)   */
-  --fv-ink-muted: 132 132 150;     /* placeholders, hints           */
+  --fv-ink: 17 24 39; /* #111827 */
+  --fv-ink-secondary: 75 85 99; /* #4B5563 */
+  --fv-ink-muted: 156 163 175; /* #9CA3AF */
 
-  --fv-stroke: 224 224 232;        /* standard border               */
-  --fv-stroke-subtle: 236 236 242; /* hairline dividers             */
+  --fv-stroke: 229 232 239; /* #E5E8EF */
+  --fv-stroke-subtle: 238 240 245; /* #EEF0F5 */
 
-  --fv-accent: 79 70 229;          /* indigo-600 — AA on white      */
-  --fv-accent-hover: 67 56 202;
-  --fv-accent-ink: 255 255 255;    /* text on accent fills          */
+  --fv-accent: 8 145 178; /* #0891B2 */
+  --fv-accent-hover: 14 116 144; /* #0E7490 */
+  --fv-accent-ink: 255 255 255;
+  --fv-accent-subtle: rgba(8, 145, 178, 0.1);
 
-  --fv-success: 22 163 74;
-  --fv-warning: 180 83 9;
-  --fv-danger: 220 38 38;
+  --fv-success: 5 150 105; /* #059669 */
+  --fv-warning: 217 119 6; /* #D97706 */
+  --fv-danger: 220 38 38; /* #DC2626 */
+  --fv-shadow: 15 23 42; /* #0F1726 */
 
-  --fv-shadow: 20 20 43;
+  /* Motion */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 80ms;
+  --duration-base: 120ms;
+  --duration-slow: 150ms;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fv-canvas: 14 14 17;
-    --fv-surface: 21 21 26;
-    --fv-card: 28 28 35;
-    --fv-hover: 40 40 50;
-    --fv-active: 50 50 62;
+    --fv-canvas: 10 15 30; /* #0A0F1E */
+    --fv-surface: 17 24 39; /* #111827 */
+    --fv-card: 26 34 54; /* #1A2236 */
+    --fv-popup-bg: rgba(14, 20, 36, 0.82);
+    --fv-popup-border: rgba(255, 255, 255, 0.1);
+    --fv-hover: 31 45 71; /* #1F2D47 */
+    --fv-active: 36 52 89; /* #243459 */
 
-    --fv-ink: 235 235 242;
-    --fv-ink-secondary: 158 158 178;
-    --fv-ink-muted: 110 110 130;
+    --fv-ink: 232 237 245; /* #E8EDF5 */
+    --fv-ink-secondary: 136 150 176; /* #8896B0 */
+    --fv-ink-muted: 78 95 122; /* #4E5F7A */
 
-    --fv-stroke: 58 58 72;
-    --fv-stroke-subtle: 42 42 53;
+    --fv-stroke: rgba(255, 255, 255, 0.08);
+    --fv-stroke-subtle: rgba(255, 255, 255, 0.04);
 
-    --fv-accent: 99 102 241;       /* indigo-500 — AA on dark card  */
-    --fv-accent-hover: 129 140 248;
-    --fv-accent-ink: 255 255 255;
+    --fv-accent: 34 211 238; /* #22D3EE */
+    --fv-accent-hover: 56 232 255; /* #38E8FF */
+    --fv-accent-ink: 10 15 30; /* #0A0F1E */
+    --fv-accent-subtle: rgba(34, 211, 238, 0.12);
 
-    --fv-success: 74 222 128;
-    --fv-warning: 251 191 36;
-    --fv-danger: 248 113 113;
-
+    --fv-success: 52 211 153; /* #34D399 */
+    --fv-warning: 251 191 36; /* #FBBF24 */
+    --fv-danger: 248 113 113; /* #F87171 */
     --fv-shadow: 0 0 0;
   }
 }
@@ -79,7 +92,7 @@ body {
 /* Keyboard-first: visible focus ring everywhere, only for keyboard focus */
 :focus-visible {
   outline: 2px solid rgb(var(--fv-accent));
-  outline-offset: 1px;
+  outline-offset: 2px;
   border-radius: 4px;
 }
 

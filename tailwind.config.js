@@ -28,8 +28,8 @@ module.exports = {
         label: ['12px', { lineHeight: '16px' }],
         body: ['13px', { lineHeight: '18px' }],
         'body-lg': ['14px', { lineHeight: '20px' }],
-        heading: ['15px', { lineHeight: '20px', fontWeight: '600' }],
-        display: ['18px', { lineHeight: '24px', fontWeight: '600' }]
+        heading: ['15px', { lineHeight: '20px', fontWeight: '600', letterSpacing: '-0.01em' }],
+        display: ['18px', { lineHeight: '24px', fontWeight: '600', letterSpacing: '-0.02em' }]
       },
       colors: {
         canvas: withOpacity('--fv-canvas'),
@@ -49,7 +49,8 @@ module.exports = {
         accent: {
           DEFAULT: withOpacity('--fv-accent'),
           hover: withOpacity('--fv-accent-hover'),
-          ink: withOpacity('--fv-accent-ink')
+          ink: withOpacity('--fv-accent-ink'),
+          subtle: 'var(--fv-accent-subtle)' // pre-built rgba — no opacity modifier needed
         },
         success: withOpacity('--fv-success'),
         warning: withOpacity('--fv-warning'),
@@ -63,16 +64,17 @@ module.exports = {
         }
       },
       borderRadius: {
-        // Radius system: controls 6px, cards 10px, floating surfaces 14px
+        // Radius system: controls 6px, cards 10px, floating surfaces 14px, pills full
         control: '6px',
         card: '10px',
-        float: '14px'
+        float: '14px',
+        pill: '9999px'
       },
       boxShadow: {
         // Elevation system (shadow color driven by theme variable)
-        'elevation-1': '0 1px 2px rgb(var(--fv-shadow) / 0.10), 0 1px 3px rgb(var(--fv-shadow) / 0.08)',
-        'elevation-2': '0 4px 12px rgb(var(--fv-shadow) / 0.14), 0 2px 4px rgb(var(--fv-shadow) / 0.10)',
-        'elevation-3': '0 12px 32px rgb(var(--fv-shadow) / 0.22), 0 4px 12px rgb(var(--fv-shadow) / 0.14)'
+        'elevation-1': '0 1px 2px rgb(var(--fv-shadow) / 0.12), 0 1px 4px rgb(var(--fv-shadow) / 0.08)',
+        'elevation-2': '0 4px 16px rgb(var(--fv-shadow) / 0.18), 0 2px 6px rgb(var(--fv-shadow) / 0.10)',
+        'elevation-3': '0 16px 48px rgb(var(--fv-shadow) / 0.28), 0 6px 16px rgb(var(--fv-shadow) / 0.16)'
       },
       transitionDuration: {
         DEFAULT: '120ms',
@@ -87,11 +89,31 @@ module.exports = {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' }
+        },
+        'fade-out': {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' }
+        },
+        'toast-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px) scale(0.97)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' }
+        },
+        'toast-out': {
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-6px)' }
+        },
+        'pulse-ring': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgb(var(--fv-accent) / 0.4)' },
+          '50%': { boxShadow: '0 0 0 4px rgb(var(--fv-accent) / 0)' }
         }
       },
       animation: {
         'float-in': 'float-in 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-        'fade-in': 'fade-in 120ms ease-out'
+        'fade-in': 'fade-in 120ms ease-out',
+        'fade-out': 'fade-out 120ms ease-out',
+        'toast-in': 'toast-in 120ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'toast-out': 'toast-out 120ms ease-out',
+        'pulse-ring': 'pulse-ring 1200ms ease-in-out infinite'
       }
     }
   },
