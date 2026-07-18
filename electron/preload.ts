@@ -31,6 +31,7 @@ const api = {
   getAppVersion: (): Promise<string> => ipcRenderer.invoke(IPC.GET_APP_VERSION),
   getCapabilities: (): Promise<{ autoPaste: boolean; textExpansion: boolean }> =>
     ipcRenderer.invoke(IPC.GET_CAPABILITIES),
+  showItemInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke(IPC.SHOW_ITEM_IN_FOLDER, filePath),
 
   onVaultDataUpdated: (callback: () => void): (() => void) => {
     const listener = () => callback();

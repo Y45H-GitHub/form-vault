@@ -150,13 +150,13 @@ export function initDatabase(): boolean {
   return seedDefaultProfile();
 }
 
-export function getDefaultProfileId(): string {
+export function getDefaultProfileId(): string | null {
   const row = db.prepare('SELECT id FROM profiles WHERE is_default = 1 LIMIT 1').get() as
     | { id: string }
     | undefined;
   if (row) return row.id;
-  const first = db.prepare('SELECT id FROM profiles LIMIT 1').get() as { id: string };
-  return first.id;
+  const first = db.prepare('SELECT id FROM profiles LIMIT 1').get() as { id: string } | undefined;
+  return first ? first.id : null;
 }
 
 export function getProfiles(): Profile[] {
@@ -174,10 +174,25 @@ export function addProfile(profile: NewProfile): Profile {
 }
 
 export function deleteProfile(profileId: string): void {
-  db.prepare('DELETE FROM profiles WHERE id = ? AND is_default = 0').run(profileId);
+  const wasDefaultRow = db.prepare('SELECT is_default FROM profiles WHERE id = ?').get(profileId) as
+    | { is_default: number }
+    | undefined;
+  if (!wasDefaultRow) return;
+
+  db.transaction(() => {
+    db.prepare('DELETE FROM profiles WHERE id = ?').run(profileId);
+
+    if (wasDefaultRow.is_default === 1) {
+      const another = db.prepare('SELECT id FROM profiles LIMIT 1').get() as { id: string } | undefined;
+      if (another) {
+        db.prepare('UPDATE profiles SET is_default = 1 WHERE id = ?').run(another.id);
+      }
+    }
+  })();
 }
 
 export function getFieldsForProfile(profileId: string): Field[] {
+  if (!profileId) return [];
   const rows = db
     .prepare('SELECT * FROM fields WHERE profile_id = ? ORDER BY category ASC, sort_order ASC')
     .all(profileId) as FieldRow[];
@@ -256,6 +271,7 @@ export function logUsage(fieldId: string, action: string): void {
 }
 
 export function getFilesForProfile(profileId: string): FileRef[] {
+  if (!profileId) return [];
   const rows = db.prepare('SELECT * FROM file_refs WHERE profile_id = ? ORDER BY created_at DESC').all(
     profileId
   ) as FileRefRow[];

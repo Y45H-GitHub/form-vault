@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MagnifyingGlass, Plus, Tray } from '@phosphor-icons/react';
+import { MagnifyingGlass, Plus, Tray, X } from '@phosphor-icons/react';
 import { ipc } from '../shared/ipc-client';
 import { CATEGORIES } from '../shared/constants';
 import type { FieldTemplate } from '../shared/fieldTemplates';
@@ -181,7 +181,7 @@ export function VaultManager() {
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
   return (
-    <div className="flex h-screen w-screen bg-canvas text-ink">
+    <div className="flex h-full w-full bg-canvas text-ink">
       <ProfileManager
         profiles={profiles}
         activeProfileId={activeProfileId}
@@ -205,9 +205,19 @@ export function VaultManager() {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Filter fields…"
-              className="pl-8"
+              className="pl-8 pr-8"
               aria-label="Filter fields"
             />
+            {filter && (
+              <button
+                type="button"
+                onClick={() => setFilter('')}
+                aria-label="Clear filter"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-control p-0.5 text-ink-muted transition-colors duration-fast hover:bg-hover hover:text-ink focus:outline-none"
+              >
+                <X weight="bold" className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
           <Button
             onClick={() => {
@@ -227,7 +237,7 @@ export function VaultManager() {
             <>
               {hasEmptyFields && !filter && (
                 <div className="mb-5 flex items-center justify-between gap-4 rounded-card border border-stroke bg-accent-subtle px-4 py-3">
-                  <p className="text-label text-ink-secondary">Some fields are still empty — fill them in to use them from the popup.</p>
+                  <p className="text-label text-ink-secondary">Some fields are still empty - fill them in to use them from the popup.</p>
                   <Button size="sm" variant="secondary" onClick={handleStartFillingIn}>
                     Take me there
                   </Button>
@@ -236,11 +246,17 @@ export function VaultManager() {
 
               {filteredFields.length === 0 ? (
                 <div className="rounded-card border border-stroke bg-card/40">
-                  {fields.length === 0 ? (
+                  {profiles.length === 0 ? (
+                    <EmptyState
+                      icon={Tray}
+                      title="No profiles found"
+                      description="Create your first profile in the sidebar to start adding details."
+                    />
+                  ) : fields.length === 0 ? (
                     <EmptyState
                       icon={Tray}
                       title="No fields in this profile"
-                      description="Add your first field — a name, PAN, bank account — and paste it anywhere with one shortcut."
+                      description="Add your first field - a name, PAN, bank account - and paste it anywhere with one shortcut."
                       action={
                         <Button
                           size="sm"

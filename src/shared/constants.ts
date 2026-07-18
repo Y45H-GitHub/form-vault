@@ -42,6 +42,7 @@ export const IPC = {
   PICK_FILE: 'vault:pick-file',
   EXPORT_VAULT: 'vault:export',
   IMPORT_VAULT: 'vault:import',
+  SHOW_ITEM_IN_FOLDER: 'vault:show-item-in-folder',
 
   SETTINGS_GET: 'settings:get',
   SETTINGS_SET: 'settings:set',

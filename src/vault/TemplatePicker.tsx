@@ -17,7 +17,7 @@ export function TemplatePicker({ profileName, onChooseTemplate, onStartBlank }: 
       </div>
       <h2 className="text-heading text-ink">Set up &ldquo;{profileName}&rdquo;</h2>
       <p className="mt-2 max-w-md text-label text-ink-muted">
-        Pick a starting point. You can rename, remove, or add fields at any time — this just saves you the typing.
+        Pick a starting point. You can rename, remove, or add fields at any time - this just saves you the typing.
       </p>
 
       <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">

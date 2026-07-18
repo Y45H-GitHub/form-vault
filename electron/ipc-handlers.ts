@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, app } from 'electron';
+import { BrowserWindow, dialog, ipcMain, app, shell } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { IPC } from '../src/shared/constants';
@@ -144,4 +144,7 @@ export function registerIpcHandlers(): void {
     autoPaste: isAutoPasteAvailable(),
     textExpansion: isTextExpanderAvailable()
   }));
+  ipcMain.handle(IPC.SHOW_ITEM_IN_FOLDER, (_e, filePath: string) => {
+    shell.showItemInFolder(filePath);
+  });
 }

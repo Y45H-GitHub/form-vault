@@ -135,7 +135,7 @@ export function Settings() {
   const hotkeyParts = hotkey.replace('CommandOrControl', 'Ctrl').split('+');
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-y-auto bg-canvas px-6 py-5 text-ink">
+    <div className="flex h-full w-full flex-col overflow-y-auto bg-canvas px-6 py-5 text-ink">
       <h1 className="mb-4 font-display text-display">Settings</h1>
 
       <div className="flex flex-col gap-4">
@@ -185,7 +185,7 @@ export function Settings() {
 
         <SettingsGroup title="About">
           <SettingsRow divider title="Version">
-            <span className="font-mono text-body text-ink-secondary">{version ? `v${version}` : '—'}</span>
+            <span className="font-mono text-body text-ink-secondary">{version ? `v${version}` : '-'}</span>
           </SettingsRow>
           <SettingsRow divider title="Auto-paste" description="Automatically pastes after copying">
             <CapabilityBadge available={capabilities.autoPaste} />

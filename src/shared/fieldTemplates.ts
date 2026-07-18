@@ -44,7 +44,7 @@ export const FIELD_TEMPLATES: FieldTemplate[] = [
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Just the basics — name, email, and mobile number. Add more as you go.',
+    description: 'Just the basics - name, email, and mobile number. Add more as you go.',
     fields: minimal
   }
 ];

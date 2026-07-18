@@ -33,6 +33,7 @@ function createPopupWindow(): BrowserWindow {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     win.loadURL(`${process.env.ELECTRON_RENDERER_URL}/src/popup/index.html`);
+    win.webContents.openDevTools({ mode: 'detach' });
   } else {
     win.loadFile(path.join(__dirname, '../renderer/src/popup/index.html'));
   }

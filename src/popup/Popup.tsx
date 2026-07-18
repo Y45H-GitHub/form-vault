@@ -120,7 +120,7 @@ export function Popup() {
   }
 
   return (
-    <div className="h-screen w-screen p-2.5">
+    <div className="h-full w-full p-2.5">
       <div
         data-closing={copyState === 'closing' || undefined}
         className="flex h-full flex-col overflow-hidden rounded-float border animate-float-in data-[closing]:animate-fade-out"

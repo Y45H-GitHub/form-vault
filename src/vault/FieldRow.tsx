@@ -48,7 +48,7 @@ export const FieldRow = memo(function FieldRow({
   const sensitive = isSensitiveField(field.shortcut);
   const shown = revealed || !sensitive;
   const hasValue = field.value.length > 0;
-  const displayValue = hasValue ? (shown ? field.value : maskValue(field.value)) : '—';
+  const displayValue = hasValue ? (shown ? field.value : maskValue(field.value)) : '-';
 
   async function handleCopy() {
     await onCopy();

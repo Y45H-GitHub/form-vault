@@ -79,7 +79,7 @@ export function FileVault({ profileId, files, onChanged }: FileVaultProps) {
           <EmptyState
             icon={FolderOpen}
             title="No files yet"
-            description="Keep shortcuts to documents you upload often — photos, ID scans, signatures."
+            description="Keep shortcuts to documents you upload often - photos, ID scans, signatures."
           />
         </div>
       ) : (
@@ -95,7 +95,14 @@ export function FileVault({ profileId, files, onChanged }: FileVaultProps) {
               >
                 <File weight="regular" className="h-4 w-4 shrink-0 text-ink-muted" />
                 <span className="min-w-0 flex-1 truncate text-body font-medium text-ink">{file.label}</span>
-                <span className="max-w-[45%] truncate font-mono text-caption text-ink-muted">{file.filePath}</span>
+                <button
+                  type="button"
+                  onClick={() => void ipc.showItemInFolder(file.filePath)}
+                  title="Open in File Explorer"
+                  className="max-w-[45%] truncate font-mono text-caption text-ink-muted hover:text-accent hover:underline text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                >
+                  {file.filePath}
+                </button>
                 <div className="opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
                   <InlineConfirm triggerAriaLabel={`Remove ${file.label}`} onConfirm={() => void handleDelete(file.id)} />
                 </div>

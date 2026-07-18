@@ -68,11 +68,9 @@ export function ProfileManager({ profiles, activeProfileId, profileFields, onSel
                   <InitialsAvatar name={profile.name} color={profile.color} />
                   <span className="truncate text-body font-medium">{profile.name}</span>
                 </button>
-                {!profile.isDefault && (
-                  <div className="opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
-                    <InlineConfirm triggerAriaLabel={`Delete profile ${profile.name}`} onConfirm={() => void onDelete(profile.id)} />
-                  </div>
-                )}
+                <div className="opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
+                  <InlineConfirm triggerAriaLabel={`Delete profile ${profile.name}`} onConfirm={() => void onDelete(profile.id)} />
+                </div>
               </div>
               <ProfileCompletionIndicator fields={fields} />
             </div>
