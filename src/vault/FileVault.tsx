@@ -75,7 +75,7 @@ export function FileVault({ profileId, files, onChanged }: FileVaultProps) {
       )}
 
       {files.length === 0 && !pendingPath ? (
-        <div className="rounded-card border border-dashed border-stroke">
+        <div className="rounded-card border border-stroke bg-card/40">
           <EmptyState
             icon={FolderOpen}
             title="No files yet"

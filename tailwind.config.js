@@ -43,8 +43,11 @@ module.exports = {
           muted: withOpacity('--fv-ink-muted')
         },
         stroke: {
-          DEFAULT: withOpacity('--fv-stroke'),
-          subtle: withOpacity('--fv-stroke-subtle')
+          // NOT wrapped in withOpacity/rgb() — these are already full color values (hex in
+          // light mode, rgba() in dark mode) so they can be blended over any surface. Nesting
+          // rgba() inside rgb() is invalid CSS and silently resolves to currentColor.
+          DEFAULT: 'var(--fv-stroke)',
+          subtle: 'var(--fv-stroke-subtle)'
         },
         accent: {
           DEFAULT: withOpacity('--fv-accent'),

@@ -1,36 +1,36 @@
+import { memo, useMemo, useRef } from 'react';
 import { CATEGORY_COLORS } from '../shared/constants';
 import { FieldRow } from './FieldRow';
 import { useDragToReorder } from './useDragToReorder';
+import { useFlip } from './useFlip';
 import type { Category, Field } from '../shared/types';
 
 interface CategorySectionProps {
   category: Category;
   label: string;
   fields: Field[];
-  revealed: Set<string>;
-  copiedId: string | null;
   highlightedFieldId: string | null;
   onReorder: (orderedIds: string[]) => void;
-  onToggleReveal: (fieldId: string) => void;
-  onCopy: (fieldId: string) => void;
+  onCopy: (fieldId: string) => Promise<void>;
   onEdit: (field: Field) => void;
   onDelete: (fieldId: string) => void;
 }
 
-export function CategorySection({
+export const CategorySection = memo(function CategorySection({
   category,
   label,
   fields,
-  revealed,
-  copiedId,
   highlightedFieldId,
   onReorder,
-  onToggleReveal,
   onCopy,
   onEdit,
   onDelete
 }: CategorySectionProps) {
-  const { dragIndex, overIndex, onDragStart, onDragOver, onDrop, onDragEnd, moveField } = useDragToReorder(fields, onReorder);
+  const { displayFields, draggedId, onDragStart, onDragOver, onDrop, onDragEnd, moveField } = useDragToReorder(fields, onReorder);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const orderKey = useMemo(() => displayFields.map((f) => f.id).join('|'), [displayFields]);
+  useFlip(containerRef, orderKey);
 
   return (
     <section className="mb-5">
@@ -40,23 +40,19 @@ export function CategorySection({
         <span className="text-caption text-ink-muted">{fields.length}</span>
       </div>
 
-      <div className="overflow-hidden rounded-card border border-stroke bg-card shadow-elevation-1">
-        {fields.map((field, i) => (
-          <div key={field.id} className={i < fields.length - 1 ? 'border-b border-stroke-subtle' : undefined}>
+      <div ref={containerRef} className="overflow-hidden rounded-card border border-stroke bg-card shadow-elevation-1">
+        {displayFields.map((field, i) => (
+          <div key={field.id} className={i < displayFields.length - 1 ? 'border-b border-stroke-subtle' : undefined}>
             <FieldRow
               field={field}
               highlighted={highlightedFieldId === field.id}
-              revealed={revealed.has(field.id)}
-              copied={copiedId === field.id}
-              isDragging={dragIndex === i}
-              isDropTarget={overIndex === i && dragIndex !== i}
-              onDragStart={() => onDragStart(i)}
-              onDragOver={(e) => onDragOver(e, i)}
+              isDragging={draggedId === field.id}
+              onDragStart={() => onDragStart(field.id)}
+              onDragOver={(e) => onDragOver(e, field.id)}
               onDrop={onDrop}
               onDragEnd={onDragEnd}
-              onMoveUp={() => moveField(i, 'up')}
-              onMoveDown={() => moveField(i, 'down')}
-              onToggleReveal={() => onToggleReveal(field.id)}
+              onMoveUp={() => moveField(field.id, 'up')}
+              onMoveDown={() => moveField(field.id, 'down')}
               onCopy={() => onCopy(field.id)}
               onEdit={() => onEdit(field)}
               onDelete={() => onDelete(field.id)}
@@ -66,4 +62,4 @@ export function CategorySection({
       </div>
     </section>
   );
-}
+});

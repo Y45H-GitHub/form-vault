@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MagnifyingGlass, Plus, Lock } from '@phosphor-icons/react';
+import { MagnifyingGlass, Plus, Tray } from '@phosphor-icons/react';
 import { ipc } from '../shared/ipc-client';
 import { CATEGORIES } from '../shared/constants';
+import type { FieldTemplate } from '../shared/fieldTemplates';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import { EmptyState } from '../shared/ui/EmptyState';
 import { useToast } from '../shared/ui/useToast';
 import { applyReorder } from './reorderUtils';
+import { ackBlank, isBlankAcked } from './blankProfileAck';
 import { CategorySection } from './CategorySection';
 import { ProfileManager } from './ProfileManager';
 import { FieldForm } from './FieldForm';
 import { FileVault } from './FileVault';
+import { TemplatePicker } from './TemplatePicker';
 import type { Field, FileRef, NewField, Profile, UpdateField } from '../shared/types';
 
 export function VaultManager() {
@@ -23,9 +26,8 @@ export function VaultManager() {
   const [filter, setFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingField, setEditingField] = useState<Field | null>(null);
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
+  const [blankAckTick, setBlankAckTick] = useState(0);
 
   const loadProfiles = useCallback(async () => {
     const fetched = await ipc.getProfiles();
@@ -84,7 +86,13 @@ export function VaultManager() {
     return map;
   }, [filteredFields]);
 
-  const isOnboarding = fields.length > 0 && fields.every((f) => f.value === '') && !filter;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const showTemplatePicker = useMemo(
+    () => fields.length === 0 && !!activeProfileId && !isBlankAcked(activeProfileId),
+    [fields.length, activeProfileId, blankAckTick]
+  );
+
+  const hasEmptyFields = fields.length > 0 && fields.some((f) => f.value === '');
 
   async function handleAddProfile(name: string) {
     try {
@@ -126,8 +134,22 @@ export function VaultManager() {
 
   async function handleCopyField(fieldId: string) {
     await ipc.copyField(fieldId, false);
-    setCopiedId(fieldId);
-    setTimeout(() => setCopiedId((id) => (id === fieldId ? null : id)), 1200);
+  }
+
+  async function handleChooseTemplate(template: FieldTemplate) {
+    if (!activeProfileId) return;
+    try {
+      await Promise.all(template.fields.map((field) => ipc.addField({ ...field, profileId: activeProfileId })));
+      if (activeProfileId) await loadProfileData(activeProfileId);
+    } catch {
+      toast('error', 'Failed to add template fields. Please try again.');
+    }
+  }
+
+  function handleStartBlank() {
+    if (!activeProfileId) return;
+    ackBlank(activeProfileId);
+    setBlankAckTick((t) => t + 1);
   }
 
   async function handleReorder(categoryFields: Field[], orderedIds: string[]) {
@@ -145,15 +167,6 @@ export function VaultManager() {
       toast('error', 'Failed to save the new order. Reloading…');
       if (activeProfileId) await loadProfileData(activeProfileId);
     }
-  }
-
-  function toggleReveal(fieldId: string) {
-    setRevealed((prev) => {
-      const next = new Set(prev);
-      if (next.has(fieldId)) next.delete(fieldId);
-      else next.add(fieldId);
-      return next;
-    });
   }
 
   function handleStartFillingIn() {
@@ -208,70 +221,67 @@ export function VaultManager() {
         </header>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {isOnboarding ? (
-            <div className="rounded-card border border-dashed border-stroke">
-              <EmptyState
-                icon={Lock}
-                title="Your vault is ready — fill it in"
-                description="Add your details to the fields below. Once filled, press your hotkey anywhere to paste them instantly."
-                action={
-                  <Button size="sm" onClick={handleStartFillingIn}>
-                    Start filling in fields
+          {showTemplatePicker && activeProfile ? (
+            <TemplatePicker profileName={activeProfile.name} onChooseTemplate={(t) => void handleChooseTemplate(t)} onStartBlank={handleStartBlank} />
+          ) : (
+            <>
+              {hasEmptyFields && !filter && (
+                <div className="mb-5 flex items-center justify-between gap-4 rounded-card border border-stroke bg-accent-subtle px-4 py-3">
+                  <p className="text-label text-ink-secondary">Some fields are still empty — fill them in to use them from the popup.</p>
+                  <Button size="sm" variant="secondary" onClick={handleStartFillingIn}>
+                    Take me there
                   </Button>
-                }
-              />
-            </div>
-          ) : filteredFields.length === 0 ? (
-            <div className="rounded-card border border-dashed border-stroke">
-              {fields.length === 0 ? (
-                <EmptyState
-                  icon={Lock}
-                  title="No fields in this profile"
-                  description="Add your first field — a name, PAN, bank account — and paste it anywhere with one shortcut."
-                  action={
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingField(null);
+                </div>
+              )}
+
+              {filteredFields.length === 0 ? (
+                <div className="rounded-card border border-stroke bg-card/40">
+                  {fields.length === 0 ? (
+                    <EmptyState
+                      icon={Tray}
+                      title="No fields in this profile"
+                      description="Add your first field — a name, PAN, bank account — and paste it anywhere with one shortcut."
+                      action={
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setEditingField(null);
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Plus weight="regular" className="h-3.5 w-3.5" /> Add field
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <EmptyState icon={MagnifyingGlass} title="No matches" description="Try a different filter." />
+                  )}
+                </div>
+              ) : (
+                CATEGORIES.map((cat) => {
+                  const list = fieldsByCategory.get(cat.id);
+                  if (!list || list.length === 0) return null;
+                  return (
+                    <CategorySection
+                      key={cat.id}
+                      category={cat.id}
+                      label={cat.label}
+                      fields={list}
+                      highlightedFieldId={highlightedFieldId}
+                      onReorder={(orderedIds) => void handleReorder(list, orderedIds)}
+                      onCopy={handleCopyField}
+                      onEdit={(field) => {
+                        setEditingField(field);
                         setFormOpen(true);
                       }}
-                    >
-                      <Plus weight="regular" className="h-3.5 w-3.5" /> Add field
-                    </Button>
-                  }
-                />
-              ) : (
-                <EmptyState icon={MagnifyingGlass} title="No matches" description="Try a different filter." />
+                      onDelete={(fieldId) => void handleDeleteField(fieldId)}
+                    />
+                  );
+                })
               )}
-            </div>
-          ) : (
-            CATEGORIES.map((cat) => {
-              const list = fieldsByCategory.get(cat.id);
-              if (!list || list.length === 0) return null;
-              return (
-                <CategorySection
-                  key={cat.id}
-                  category={cat.id}
-                  label={cat.label}
-                  fields={list}
-                  revealed={revealed}
-                  copiedId={copiedId}
-                  highlightedFieldId={highlightedFieldId}
-                  onReorder={(orderedIds) => void handleReorder(list, orderedIds)}
-                  onToggleReveal={toggleReveal}
-                  onCopy={(fieldId) => void handleCopyField(fieldId)}
-                  onEdit={(field) => {
-                    setEditingField(field);
-                    setFormOpen(true);
-                  }}
-                  onDelete={(fieldId) => void handleDeleteField(fieldId)}
-                />
-              );
-            })
-          )}
 
-          {activeProfileId && !isOnboarding && (
-            <FileVault profileId={activeProfileId} files={files} onChanged={() => loadProfileData(activeProfileId)} />
+              {activeProfileId && <FileVault profileId={activeProfileId} files={files} onChanged={() => loadProfileData(activeProfileId)} />}
+            </>
           )}
         </div>
       </main>

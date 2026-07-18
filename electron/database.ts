@@ -3,7 +3,7 @@ import { app } from 'electron';
 import Database from 'better-sqlite3';
 import { v4 as uuid } from 'uuid';
 import { encrypt, decrypt } from './encryption';
-import { DEFAULT_FIELDS, DEFAULT_PROFILE_NAME } from '../src/shared/constants';
+import { DEFAULT_PROFILE_NAME } from '../src/shared/constants';
 import type { Field, FileRef, NewField, NewProfile, Profile, UpdateField } from '../src/shared/types';
 
 let db: Database.Database;
@@ -124,46 +124,30 @@ function toFileRef(row: FileRefRow): FileRef {
   };
 }
 
-function seedDefaultProfile(): void {
+/**
+ * Creates the one default profile every install needs, with zero fields — the Vault Manager
+ * shows a template picker (see src/shared/fieldTemplates.ts) for any profile with no fields,
+ * so the user chooses what to seed it with instead of a fixed set being forced on them.
+ * Returns true if this was a first run (no profiles existed yet).
+ */
+function seedDefaultProfile(): boolean {
   const existing = db.prepare('SELECT COUNT(*) as count FROM profiles').get() as { count: number };
-  if (existing.count > 0) return;
+  if (existing.count > 0) return false;
 
   const profileId = uuid();
   db.prepare(
     `INSERT INTO profiles (id, name, icon, color, is_default) VALUES (?, ?, ?, ?, 1)`
   ).run(profileId, DEFAULT_PROFILE_NAME, '👤', '#6366f1');
-
-  const insertField = db.prepare(
-    `INSERT INTO fields (id, profile_id, category, label, value, field_type, shortcut, icon, sort_order)
-     VALUES (@id, @profileId, @category, @label, @value, @fieldType, @shortcut, @icon, @sortOrder)`
-  );
-
-  const insertMany = db.transaction((fields: NewField[]) => {
-    for (const f of fields) {
-      insertField.run({
-        id: uuid(),
-        profileId: f.profileId,
-        category: f.category,
-        label: f.label,
-        value: encrypt(f.value),
-        fieldType: f.fieldType,
-        shortcut: f.shortcut ?? null,
-        icon: f.icon ?? '📋',
-        sortOrder: f.sortOrder ?? 0
-      });
-    }
-  });
-
-  insertMany(DEFAULT_FIELDS.map((f) => ({ ...f, profileId })));
+  return true;
 }
 
-export function initDatabase(): void {
+export function initDatabase(): boolean {
   const dbPath = path.join(app.getPath('userData'), 'formvault.sqlite3');
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
-  seedDefaultProfile();
+  return seedDefaultProfile();
 }
 
 export function getDefaultProfileId(): string {

@@ -78,6 +78,8 @@ Light-mode `--fv-success`/`--fv-warning`/`--fv-danger` and `--fv-accent`/`--fv-a
 | dark warning / card | 8.92:1 | light danger / card | 6.09:1 |
 | dark danger / card | 5.38:1 | | |
 
+**Implementation warning (regression that shipped and was fixed):** `--fv-stroke`/`--fv-stroke-subtle` in dark mode are `rgba(255,255,255,0.1)`-style values — full color functions, not bare RGB triples. Tailwind's `withOpacity` helper (tailwind.config.js) wraps color tokens as `rgb(var(--token))`, which is correct for triples but produces **invalid CSS** — `rgb(rgba(255,255,255,0.1))` — when the variable already holds a full color function. Per the CSS spec, an invalid custom-property substitution falls back to the property's initial value; for `border-color` that's `currentColor`, so every dark-mode border silently rendered as solid, bright, ink-colored lines instead of the intended subtle translucent ones. This was reported as "high contrast, solid white borders" before the root cause was found. The fix: `stroke`/`stroke-subtle` in tailwind.config.js reference `var(--fv-stroke)` directly with **no** `rgb()` wrapper (matching the already-correct `accent.subtle` pattern), and both light/dark values are stored as complete, self-contained CSS colors (hex in light mode, `rgba()` in dark mode). Any future token that needs alpha-blending in dark mode MUST follow this same direct-reference pattern — never nest a full color function inside `rgb(var(...))`.
+
 **Acceptance criteria:**
 - WHEN the OS is in dark mode THEN every rendered color MUST match the dark-mode token values
 - WHEN the OS is in light mode THEN every rendered color MUST match the light-mode token values
@@ -327,14 +329,16 @@ The popup is the highest-usage surface. It MUST feel like a premium command pale
 
 #### REQ-5.3 — Field List with Drag-to-Reorder
 - Fields within each category MUST be reorderable via drag-and-drop
-- WHEN a drag is in progress THEN the dragged item MUST appear with `elevation-2` shadow and slight scale-up (`scale(1.02)`)
-- WHEN a drop occurs THEN the new sort order MUST be persisted via `ipc.updateField` with updated `sortOrder` values
+- WHEN a drag is in progress THEN the dragged item MUST appear with `elevation-2` shadow and slight scale-up (`scale(1.01)`)
+- WHILE a drag is in progress, THEN the other rows in that category MUST live-reorder around the pointer (not just show a static drop-line) — the list re-renders in the pointer's current preview order on every `dragover`, and a FLIP (First-Last-Invert-Play) animation smooths each row's transition to its new position, so it reads as the rows "making room" rather than snapping
+- WHEN a drop occurs THEN the new sort order MUST be persisted via `ipc.updateField` with updated `sortOrder` values — only on drop, not on every `dragover`
 - The drag handle MUST use Phosphor `DotsSixVertical` icon, `icon-sm`, visible only on row hover
 
 **Acceptance criteria:**
 - WHEN fields are reordered by drag THEN the `sortOrder` values MUST be updated such that the new visual order matches the stored order on next load
 - Drag-to-reorder MUST only work within the same category — cross-category drag IS NOT supported
 - WHEN a drag is cancelled (Escape key or drop outside valid target) THEN the original order MUST be restored
+- The live-preview reorder during drag MUST NOT call `ipc.updateField` — persistence happens exactly once, on drop
 
 #### REQ-5.4 — Field Row
 - Field row height MUST be `py-2.5 px-3` (slightly taller than current for better click targets)
@@ -343,6 +347,7 @@ The popup is the highest-usage surface. It MUST feel like a premium command pale
 - Copy button MUST use Phosphor `Copy` / `CheckCircle` (success state)
 - Edit button MUST use Phosphor `PencilSimple`
 - Delete button MUST be wrapped in `InlineConfirm` (REQ-3.7) — no `window.confirm()`
+- Reveal state and copy-feedback state MUST be local to `FieldRow` (`React.memo`'d), not lifted to `VaultManager` — an earlier implementation kept a `revealed: Set<string>` and `copiedId` at the top level, so toggling one row's reveal re-rendered every category and every row in the whole vault. Correct state placement, not just memoization, is what fixes this (see design.md's Performance Design section)
 
 #### REQ-5.5 — FieldForm Dialog
 - The icon field MUST be replaced with an icon picker: a grid of Phosphor icons (at least 30 common icons) the user can click to select
@@ -370,14 +375,17 @@ The popup is the highest-usage surface. It MUST feel like a premium command pale
 - Completion percentage MUST equal `(count of fields where value ≠ '') / (total field count) * 100`, rounded to nearest integer
 - WHEN fields are added or their values are updated THEN the indicator MUST update without requiring a page reload
 
-#### REQ-5.8 — Onboarding State
-- WHEN a profile has fields but ALL of them have empty values (freshly seeded default fields) THEN the main content area MUST show a special onboarding empty state
-- The onboarding state MUST include:
-  - A Phosphor `Vault` or `Lock` icon (icon-lg, accent color)
-  - Headline: "Your vault is ready — fill it in"
-  - Subtext: "Add your details to the fields below. Once filled, press your hotkey anywhere to paste them instantly."
-  - A CTA button: "Start filling in fields" that scrolls to and highlights the first empty field
-- WHEN at least one field has a non-empty value THEN the onboarding state MUST NOT be shown
+#### REQ-5.8 — Onboarding State (superseded — see below)
+
+**Revision note:** the original design forced every fresh install to auto-seed one profile with 16 hardcoded fields (PAN, Aadhaar, GST, etc. — see the now-removed `DEFAULT_FIELDS` in constants.ts), and hid the entire field list behind a full-page "onboarding" takeover whenever all of a profile's fields were empty. In practice this meant a user opening the Vault Manager for the first time saw a card with a CTA and **no visible fields at all** — the CTA's "scroll to first empty field" action had nothing to scroll to, since the list wasn't rendered. The fix below replaces forced seeding with a template picker, and replaces the full-page takeover with an always-visible field list plus a non-blocking banner.
+
+- Backend seeding (`electron/database.ts`) MUST create exactly one default profile on first run, with **zero fields**. `DEFAULT_FIELDS` MUST NOT exist as a fixed thing every profile gets.
+- Field starter sets live in `src/shared/fieldTemplates.ts` as `FIELD_TEMPLATES`, each with an id, name, description, and a list of fields. Two templates ship today: "Indian essentials" (the original 16-field set) and "Minimal" (name, email, mobile).
+- WHEN the active profile has zero fields THEN the main content area MUST show a `TemplatePicker`: one card per entry in `FIELD_TEMPLATES` (clicking bulk-adds that template's fields to the profile via the existing `addField` IPC call, looped — no new IPC handler), plus a "Start blank" action that dismisses the picker for that profile without adding any fields
+- "Start blank" MUST be remembered per profile (a lightweight local-storage flag, not a schema change — see `src/vault/blankProfileAck.ts`) so the picker does not reappear on next load once the user has explicitly chosen to start empty
+- WHEN a profile has at least one field, empty or not, THEN the field list (grouped by category, per REQ-5.3) MUST always be rendered — the field list MUST NEVER be replaced by an empty-state or onboarding card while fields exist
+- WHEN a profile has at least one empty-valued field (and no active filter) THEN a slim, non-blocking banner MUST appear above the field list: "Some fields are still empty — fill them in to use them from the popup." with a "Take me there" action that scrolls to and highlights the first empty field. This banner MUST NOT hide or replace the field list underneath it
+- WHEN the app is launched for the very first time (no profiles exist yet in the database) THEN the main process MUST auto-open the Vault Manager window, since the app is otherwise tray-only and opens no window on its own — this is the only time a window opens automatically; every subsequent launch stays tray-only
 
 ---
 

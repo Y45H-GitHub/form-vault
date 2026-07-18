@@ -1,48 +1,62 @@
 import { useState } from 'react';
 import type { Field } from '../shared/types';
 
-/** HTML5 drag-and-drop within a single category list — no third-party drag library (REQ-8). */
+/**
+ * HTML5 drag-and-drop within a single category list — no third-party drag library (REQ-8).
+ * As the user drags over other rows, `displayFields` progressively reflects the live preview
+ * order so the other rows visually move out of the way (paired with useFlip for the animation);
+ * the real reorder is only persisted via `onReorder` on drop.
+ */
 export function useDragToReorder(fields: Field[], onReorder: (orderedIds: string[]) => void) {
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [previewOrder, setPreviewOrder] = useState<Field[] | null>(null);
 
-  function onDragStart(index: number) {
-    setDragIndex(index);
+  const displayFields = previewOrder ?? fields;
+
+  function onDragStart(id: string) {
+    setDraggedId(id);
+    setPreviewOrder(fields);
   }
 
-  function onDragOver(e: React.DragEvent, index: number) {
+  function onDragOver(e: React.DragEvent, overId: string) {
     e.preventDefault();
-    setOverIndex(index);
+    if (!draggedId || draggedId === overId) return;
+    setPreviewOrder((current) => {
+      const list = current ?? fields;
+      const fromIndex = list.findIndex((f) => f.id === draggedId);
+      const toIndex = list.findIndex((f) => f.id === overId);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return list;
+      const next = [...list];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   }
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
-    if (dragIndex === null || overIndex === null || dragIndex === overIndex) {
-      setDragIndex(null);
-      setOverIndex(null);
-      return;
+    if (previewOrder) {
+      const changed = previewOrder.some((f, i) => f.id !== fields[i]?.id);
+      if (changed) onReorder(previewOrder.map((f) => f.id));
     }
-    const reordered = [...fields];
-    const [moved] = reordered.splice(dragIndex, 1);
-    reordered.splice(overIndex, 0, moved);
-    onReorder(reordered.map((f) => f.id));
-    setDragIndex(null);
-    setOverIndex(null);
+    setDraggedId(null);
+    setPreviewOrder(null);
   }
 
   function onDragEnd() {
-    setDragIndex(null);
-    setOverIndex(null);
+    setDraggedId(null);
+    setPreviewOrder(null);
   }
 
-  function moveField(index: number, direction: 'up' | 'down') {
+  function moveField(fieldId: string, direction: 'up' | 'down') {
+    const index = fields.findIndex((f) => f.id === fieldId);
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= fields.length) return;
+    if (index === -1 || targetIndex < 0 || targetIndex >= fields.length) return;
     const reordered = [...fields];
     const [moved] = reordered.splice(index, 1);
     reordered.splice(targetIndex, 0, moved);
     onReorder(reordered.map((f) => f.id));
   }
 
-  return { dragIndex, overIndex, onDragStart, onDragOver, onDrop, onDragEnd, moveField };
+  return { displayFields, draggedId, onDragStart, onDragOver, onDrop, onDragEnd, moveField };
 }

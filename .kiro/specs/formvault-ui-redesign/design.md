@@ -1256,7 +1256,23 @@ The existing design already batches selection index changes in `setSelectedIndex
 
 **Vault Manager:**
 - `filteredFields` and `fieldsByCategory` are already memoized.
-- Drag state (`dragIndex`, `overIndex`) should live in the `useDragToReorder` hook rather than VaultManager state to limit re-render scope to field rows only.
+- Drag state (`draggedId`, `previewOrder`) lives in the `useDragToReorder` hook, scoped per-`CategorySection` instance, rather than in `VaultManager` state.
+- **Reveal and copy-feedback state must live in `FieldRow` itself, not in `VaultManager`.** An earlier implementation kept `revealed: Set<string>` and `copiedId: string | null` at the `VaultManager` level. Since both were passed down into every `CategorySection`/`FieldRow`, toggling a single row's reveal state changed a prop on literally every row in the vault, defeating `React.memo` entirely and re-rendering the whole field tree on every interaction — this was the actual cause of the app "feeling laggy," not list size (16 fields is nothing for React to render). The fix followed the general 2026 React guidance that state placement, not memoization, is the primary performance lever: move `revealed`/`justCopied` into local `useState` inside `FieldRow` (memo'd), so each row's micro-interactions never touch its siblings or `VaultManager` at all.
+- `CategorySection` and `FieldRow` are both wrapped in `React.memo`.
+
+### Live Drag-Reorder Animation (FLIP)
+
+Rows visually "make room" for the dragged item in real time, not just a static drop-line indicator. `useDragToReorder` maintains a `previewOrder: Field[] | null` — on `dragstart` it snapshots the category's fields; on every `dragover`, it splices the dragged id to the position under the pointer (recomputed from the *current* preview order, so a continuous drag sweep across multiple rows composes correctly). `CategorySection` renders `previewOrder ?? fields` directly, so the DOM order itself reflects the live preview.
+
+Re-rendering in a new order alone would make rows jump instantly. `useFlip` (`src/vault/useFlip.ts`) adds the animation: before each render it has the previous `getBoundingClientRect()` for every `[data-field-id]` row (keyed by id); after the DOM updates, for any row whose position moved, it applies an inverse `translateY` with `transition: none`, forces a style flush, then clears the transform with a `transition` enabled — the classic First-Last-Invert-Play technique, using only `transform`/`opacity`-adjacent properties so it stays off the main thread's layout/paint cost. No animation library — just `requestAnimationFrame` and inline styles, consistent with REQ-8's "no heavy third-party drag library."
+
+`onReorder` (the real `ipc.updateField` persistence) fires exactly once, on `drop` — never on `dragover` — comparing the final preview order against the original prop to skip a no-op write if the user drags back to the start.
+
+### Field Templates & Onboarding (Revised)
+
+Replaces the original "seed 16 fields, then hide everything behind a full-page card" flow (see REQ-5.8's revision note). `src/shared/fieldTemplates.ts` exports `FIELD_TEMPLATES: FieldTemplate[]`, each `{ id, name, description, fields }`. `electron/database.ts`'s `seedDefaultProfile()` now only creates the default profile — zero fields — and returns whether this was a first run, which `electron/main.ts` uses to call `openVaultWindow()` once.
+
+`VaultManager` shows `<TemplatePicker>` when `fields.length === 0` for the active profile (checked against `isBlankAcked(profileId)` — see `src/vault/blankProfileAck.ts`, a small `localStorage` set, not a schema addition). Choosing a template loops `ipc.addField` over its field list (no new IPC surface). "Start blank" calls `ackBlank(profileId)` so the picker doesn't reappear. Critically, the picker only ever appears in place of a genuinely empty list — once any field exists, the category list renders unconditionally; a dismissible banner (not a takeover) prompts filling in remaining empty fields.
 
 ### Toast Animation (CSS-Only)
 

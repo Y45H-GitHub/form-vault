@@ -32,8 +32,13 @@
   --fv-ink-secondary: 75 85 99; /* #4B5563 */
   --fv-ink-muted: 107 114 128; /* #6B7280 — 4.6:1 on canvas, 4.8:1 on card */
 
-  --fv-stroke: 229 232 239; /* #E5E8EF */
-  --fv-stroke-subtle: 238 240 245; /* #EEF0F5 */
+  /* Full, self-contained color values (not bare RGB triples) — consumed directly via
+     var(--fv-stroke), NOT wrapped in rgb(). Dark mode needs a real alpha-blended white to
+     read correctly over any surface; nesting that inside rgb(var(...)) is invalid CSS and
+     silently falls back to currentColor, which is what caused the "solid white border"
+     look. See tailwind.config.js's `stroke` color entry. */
+  --fv-stroke: #e5e8ef;
+  --fv-stroke-subtle: #eef0f5;
 
   --fv-accent: 14 116 144; /* #0E7490 — cyan-700, darkened so white-on-accent clears AA */
   --fv-accent-hover: 8 145 178; /* #0891B2 */
@@ -70,6 +75,7 @@
 
     --fv-stroke: rgba(255, 255, 255, 0.1);
     --fv-stroke-subtle: rgba(255, 255, 255, 0.06);
+    /* both already full, self-contained color values — see the :root comment above */
 
     --fv-accent: 6 182 212; /* #06B6D4 — cyan-500, softened from cyan-400 */
     --fv-accent-hover: 34 211 238; /* #22D3EE — brighter on hover only */

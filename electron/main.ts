@@ -5,6 +5,7 @@ import { registerGlobalHotkey, unregisterAllHotkeys } from './hotkey';
 import { registerIpcHandlers } from './ipc-handlers';
 import { startTextExpander, stopTextExpander } from './text-expander';
 import { getSetting } from './database';
+import { openVaultWindow } from './vault-window';
 import { DEFAULT_HOTKEY } from '../src/shared/constants';
 
 // Single instance lock — a second launch just focuses/wakes the existing instance.
@@ -17,7 +18,7 @@ if (!gotLock) {
   });
 
   app.whenReady().then(() => {
-    initDatabase();
+    const isFirstRun = initDatabase();
     registerIpcHandlers();
     createTray();
 
@@ -25,6 +26,10 @@ if (!gotLock) {
     registerGlobalHotkey(savedHotkey);
 
     startTextExpander();
+
+    // First launch only: open the Vault Manager so the template picker is actually visible,
+    // since the app is otherwise tray-only and opens no window on its own.
+    if (isFirstRun) openVaultWindow();
 
     const launchAtStartup = getSetting('launchAtStartup');
     if (launchAtStartup === null) {
