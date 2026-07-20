@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * FormVault theme variables (RGB triples — consumed by tailwind.config.js).
+ * Retrivo theme variables (RGB triples — consumed by tailwind.config.js).
  * Neutral graphite base (near-zero blue cast) + a single cyan accent. Light is
  * the base; dark overrides via prefers-color-scheme so the app follows the
  * Windows theme automatically. No in-app theme switch.

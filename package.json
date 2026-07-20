@@ -1,8 +1,9 @@
 {
-  "name": "formvault",
-  "version": "0.1.0",
+  "name": "retrivo",
+  "version": "0.2.0",
   "description": "Your data, one shortcut away.",
-  "author": "FormVault",
+  "author": "Retrivo",
+  "license": "MIT",
   "private": true,
   "type": "commonjs",
   "main": "out/main/main.js",

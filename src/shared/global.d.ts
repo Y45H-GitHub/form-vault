@@ -1,8 +1,8 @@
-import type { FormVaultApi } from '../../electron/preload';
+import type { RetrivoApi } from '../../electron/preload';
 
 declare global {
   interface Window {
-    formvault: FormVaultApi;
+    retrivo: RetrivoApi;
   }
 }
 

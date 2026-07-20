@@ -94,9 +94,9 @@ export function registerIpcHandlers(): void {
     const payload: VaultExport = { version: 1, exportedAt: new Date().toISOString(), profiles, fields };
 
     const { canceled, filePath } = await dialog.showSaveDialog({
-      title: 'Export FormVault Data',
-      defaultPath: path.join(app.getPath('documents'), 'formvault-export.fvault'),
-      filters: [{ name: 'FormVault Encrypted Export', extensions: ['fvault'] }]
+      title: 'Export Retrivo Data',
+      defaultPath: path.join(app.getPath('documents'), 'retrivo-export.rvault'),
+      filters: [{ name: 'Retrivo Encrypted Export', extensions: ['rvault'] }]
     });
     if (canceled || !filePath) return { ok: false, reason: 'cancelled' as const };
 
@@ -109,8 +109,8 @@ export function registerIpcHandlers(): void {
     if (!passphrase) return { ok: false, reason: 'no-passphrase' as const };
 
     const { canceled, filePaths } = await dialog.showOpenDialog({
-      title: 'Import FormVault Data',
-      filters: [{ name: 'FormVault Encrypted Export', extensions: ['fvault'] }, { name: 'All Files', extensions: ['*'] }],
+      title: 'Import Retrivo Data',
+      filters: [{ name: 'Retrivo Encrypted Export', extensions: ['rvault'] }, { name: 'All Files', extensions: ['*'] }],
       properties: ['openFile']
     });
     if (canceled || filePaths.length === 0) return { ok: false, reason: 'cancelled' as const };

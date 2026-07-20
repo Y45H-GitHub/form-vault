@@ -1,5 +1,5 @@
-appId: com.formvault.app
-productName: FormVault
+appId: com.retrivo.app
+productName: Retrivo
 directories:
   output: release
   buildResources: build
@@ -12,7 +12,7 @@ directories:
 publish:
   provider: github
   owner: Y45H-GitHub
-  repo: form-vault
+  repo: retrivo
   # electron-builder defaults to publishing as a draft, which stays invisible to users and to
   # auto-update until someone manually clicks "Publish release" on GitHub. v0.1.0 needed that
   # manual step; this makes every future `--publish always` go live immediately.
@@ -45,7 +45,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: FormVault
+  shortcutName: Retrivo
 
 mac:
   target: dmg

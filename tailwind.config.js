@@ -1,5 +1,5 @@
 /**
- * FormVault design tokens.
+ * Retrivo design tokens.
  *
  * Every semantic color is an RGB-triple CSS variable defined in
  * src/shared/globals.css, themed automatically via prefers-color-scheme —

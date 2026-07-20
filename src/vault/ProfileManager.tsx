@@ -45,7 +45,7 @@ export function ProfileManager({ profiles, activeProfileId, profileFields, onSel
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-stroke-subtle bg-surface">
       <div className="flex items-center gap-2 px-4 pb-3 pt-4">
-        <span className="font-display text-heading font-semibold text-ink">FormVault</span>
+        <span className="font-display text-heading font-semibold text-ink">Retrivo</span>
       </div>
 
       <div className="px-4 pb-1 pt-2 text-caption font-semibold uppercase tracking-wide text-ink-muted">Profiles</div>

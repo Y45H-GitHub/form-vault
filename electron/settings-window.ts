@@ -16,7 +16,7 @@ export function openSettingsWindow(): void {
     width: 600,
     height: 500,
     resizable: false,
-    title: 'FormVault - Settings',
+    title: 'Retrivo - Settings',
     backgroundColor: windowBackgroundColor(),
     autoHideMenuBar: true,
     webPreferences: {

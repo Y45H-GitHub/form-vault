@@ -135,7 +135,7 @@ export function Settings() {
     const result = await ipc.importVault(passphrase);
     if (result.ok) toast('success', 'Vault imported successfully');
     else if (result.reason === 'cancelled') toast('info', 'Import cancelled');
-    else if (result.reason === 'wrong-passphrase') toast('error', 'Incorrect passphrase, or not a valid FormVault export.');
+    else if (result.reason === 'wrong-passphrase') toast('error', 'Incorrect passphrase, or not a valid Retrivo export.');
     else toast('error', 'Import failed. Please try again.');
   }
 
@@ -172,7 +172,7 @@ export function Settings() {
         </SettingsGroup>
 
         <SettingsGroup title="General">
-          <SettingsRow title="Launch at startup" description="Start FormVault automatically when you sign in">
+          <SettingsRow title="Launch at startup" description="Start Retrivo automatically when you sign in">
             <Switch checked={launchAtStartup} onChange={(v) => void toggleLaunchAtStartup(v)} label="Launch at startup" />
           </SettingsRow>
         </SettingsGroup>

@@ -26,7 +26,7 @@ export function initAutoUpdate(): void {
       .showMessageBox({
         type: 'info',
         title: 'Update ready',
-        message: `FormVault ${info.version} has been downloaded.`,
+        message: `Retrivo ${info.version} has been downloaded.`,
         detail: 'Restart now to install it, or it will install automatically the next time you quit.',
         buttons: ['Restart now', 'Later'],
         defaultId: 0,

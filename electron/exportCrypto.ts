@@ -28,7 +28,7 @@ export function encryptPayload(plaintext: string, passphrase: string): string {
 
 export class WrongPassphraseError extends Error {
   constructor() {
-    super('Incorrect passphrase, or the file is not a valid FormVault export.');
+    super('Incorrect passphrase, or the file is not a valid Retrivo export.');
     this.name = 'WrongPassphraseError';
   }
 }

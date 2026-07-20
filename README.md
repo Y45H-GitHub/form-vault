@@ -1,10 +1,12 @@
-# FormVault
+# Retrivo
 
 > Your personal data, one shortcut away.
 
 A lightweight desktop productivity app that lives in the system tray. Press a global hotkey → a floating popup appears → pick your data → it's pasted instantly. Works anywhere on your PC: browsers, PDF readers, Excel, government portals.
 
-**Download:** [latest release](https://github.com/Y45H-GitHub/form-vault/releases/latest) (Windows 10+, `FormVault-Setup-<version>.exe`)
+**Download:** [latest release](https://github.com/Y45H-GitHub/retrivo/releases/latest) (Windows 10+, `Retrivo-Setup-<version>.exe`)
+
+> **Renamed from FormVault.** The GitHub repo, package name, app ID, and product name were all updated as part of a repositioning pivot — see the note under "Releasing / auto-update" below for what still needs to happen on GitHub's side before a new release can go out under this name.
 
 ## Tech Stack
 
@@ -25,7 +27,7 @@ electron/              Main process (Node context) — one file per concern
   exportCrypto.ts           Passphrase-based encryption for vault export/import files
   validateImport.ts         Shape-validates a decrypted import before it touches the database
   ipc-handlers.ts           Every ipcMain.handle(...) the renderer can call
-  preload.ts                contextBridge surface exposed to the renderer as window.formvault
+  preload.ts                contextBridge surface exposed to the renderer as window.retrivo
   tray.ts / hotkey.ts       Tray icon + context menu / global shortcut registration
   popup-window.ts           Popup window (frameless, transparent, always-on-top)
   vault-window.ts            Vault Manager window
@@ -43,7 +45,7 @@ src/
     types.ts                 Shared TS types (Field, Profile, etc.) — mirrors the SQLite schema
     constants.ts              IPC channel names, categories, hotkey default
     fieldTemplates.ts         Starter field sets shown in the Vault Manager's template picker
-    ipc-client.ts             Thin re-export of window.formvault for renderer code
+    ipc-client.ts             Thin re-export of window.retrivo for renderer code
     globals.css               Design tokens (CSS custom properties) + Tailwind base
     ui/                       Shared component library (Button, Dialog, Toast, etc.)
 
@@ -92,7 +94,7 @@ bundled code-signing helper (`winCodeSign`) that contains symlinks. Creating
 symlinks on Windows requires either **Developer Mode** (Settings → Privacy &
 security → For developers → Developer Mode: On) or an elevated/admin
 terminal. Enable one of those once, then `npm run build` will produce
-`release/FormVault-Setup-<version>.exe`. `npm run dev` is unaffected by this
+`release/Retrivo-Setup-<version>.exe`. `npm run dev` is unaffected by this
 and works without either.
 
 ### Code signing
@@ -113,7 +115,14 @@ installer.
 
 The app checks for updates on startup and every 4 hours
 (`electron/autoUpdate.ts`, via `electron-updater`), in packaged builds only,
-against [github.com/Y45H-GitHub/form-vault/releases](https://github.com/Y45H-GitHub/form-vault/releases).
+against [github.com/Y45H-GitHub/retrivo/releases](https://github.com/Y45H-GitHub/retrivo/releases).
+
+**Before the first release under this name:** the GitHub repo itself still needs
+to be renamed from `form-vault` to `retrivo` (Settings → General → Repository
+name) — `electron-builder.yml`'s `publish.repo` already points at `retrivo`,
+so publishing before the rename will fail to find the repo. GitHub redirects
+the old URL automatically once renamed, so existing stars/links keep working.
+
 To ship a release:
 
 1. Bump `version` in `package.json`.

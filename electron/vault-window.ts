@@ -17,7 +17,7 @@ export function openVaultWindow(): void {
     height: 650,
     minWidth: 700,
     minHeight: 480,
-    title: 'FormVault - Vault Manager',
+    title: 'Retrivo - Vault Manager',
     backgroundColor: windowBackgroundColor(),
     autoHideMenuBar: true,
     webPreferences: {

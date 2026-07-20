@@ -142,7 +142,7 @@ function seedDefaultProfile(): boolean {
 }
 
 export function initDatabase(): boolean {
-  const dbPath = path.join(app.getPath('userData'), 'formvault.sqlite3');
+  const dbPath = path.join(app.getPath('userData'), 'retrivo.sqlite3');
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');

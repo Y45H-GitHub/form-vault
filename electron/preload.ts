@@ -51,6 +51,6 @@ const api = {
   }
 };
 
-export type FormVaultApi = typeof api;
+export type RetrivoApi = typeof api;
 
-contextBridge.exposeInMainWorld('formvault', api);
+contextBridge.exposeInMainWorld('retrivo', api);

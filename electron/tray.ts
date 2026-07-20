@@ -15,7 +15,7 @@ function resolveTrayIconPath(): string {
 export function createTray(): Tray {
   const icon = nativeImage.createFromPath(resolveTrayIconPath());
   tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
-  tray.setToolTip('FormVault - Your data, one shortcut away');
+  tray.setToolTip('Retrivo - Your data, one shortcut away');
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Popup', click: () => togglePopupWindow() },
