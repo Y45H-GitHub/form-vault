@@ -147,3 +147,4 @@ and can read/write the database before shipping.
 - ⚡ Text expansion — type `!pan` anywhere to auto-paste your PAN
 - 👤 Multiple profiles — personal, business, family
 - 📁 File vault — quick access to frequently uploaded documents
+- 🔒 Optional PIN lock — for shared PCs, with idle auto-lock
